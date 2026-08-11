@@ -8,4 +8,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Atlas.Abstractions\Atlas.Abstractions.csproj" />
+  </ItemGroup>
 </Project>
