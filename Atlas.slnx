@@ -1,1 +1,18 @@
-<Solution />
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Atlas.Abstractions/Atlas.Abstractions.csproj" />
+    <Project Path="src/Atlas.AI/Atlas.AI.csproj" />
+    <Project Path="src/Atlas.Api/Atlas.Api.csproj" />
+    <Project Path="src/Atlas.Contracts/Atlas.Contracts.csproj" />
+    <Project Path="src/Atlas.Core/Atlas.Core.csproj" />
+    <Project Path="src/Atlas.Desktop/Atlas.Desktop.csproj" />
+    <Project Path="src/Atlas.Hosting/Atlas.Hosting.csproj" />
+    <Project Path="src/Atlas.Memory/Atlas.Memory.csproj" />
+    <Project Path="src/Atlas.PluginFramework/Atlas.PluginFramework.csproj" />
+  </Folder>
+</Solution>
