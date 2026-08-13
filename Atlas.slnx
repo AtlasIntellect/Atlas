@@ -17,5 +17,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Atlas.Core.Tests/Atlas.Core.Tests.csproj" Id="70dcf308-eefe-486d-8f1b-46534578f794" />
+    <Project Path="tests/Atlas.Hosting.Tests/Atlas.Hosting.Tests.csproj" Id="ebc57050-2353-4ae7-a857-f67185a61e53" />
   </Folder>
 </Solution>
