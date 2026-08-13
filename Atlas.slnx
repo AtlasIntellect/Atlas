@@ -15,4 +15,7 @@
     <Project Path="src/Atlas.Memory/Atlas.Memory.csproj" />
     <Project Path="src/Atlas.PluginFramework/Atlas.PluginFramework.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Atlas.Core.Tests/Atlas.Core.Tests.csproj" Id="70dcf308-eefe-486d-8f1b-46534578f794" />
+  </Folder>
 </Solution>
