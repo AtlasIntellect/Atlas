@@ -13,5 +13,5 @@ public abstract record AtlasEvent
     /// <summary>
     /// Gets the timestamp indicating when the event occurred.
     /// </summary>
-    public DateTimeOffset OccuredAt { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset OccurredAt { get; init; } = DateTimeOffset.UtcNow;
 }

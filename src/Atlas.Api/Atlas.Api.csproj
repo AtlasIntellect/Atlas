@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
-    <PackageVersion Update="SonarAnalyzer.CSharp" />
+    <PackageVersion Update="SonarAnalyzer.CSharp" Version="10.32.0.713" />
   </ItemGroup>
 
   <ItemGroup>

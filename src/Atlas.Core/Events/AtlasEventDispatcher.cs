@@ -7,38 +7,40 @@ namespace Atlas.Core.Events;
 /// </summary>
 public sealed class AtlasEventDispatcher : IAtlasEventDispatcher
 {
-    private readonly Dictionary<Type, List<Func<AtlasEvent, CancellationToken, Task>>> _handlers = [];
+    private readonly Dictionary<Type, List<IAtlasEventHandlerBase>> _handlers = [];
 
     /// <summary>
-    /// Registers an event handler for a specific event type.
+    /// Initializes a new instance of the <see cref="AtlasEventDispatcher"/> class with the specified event handlers.
     /// </summary>
-    /// <typeparam name="TEvent">The type of the event.</typeparam>
-    /// <param name="handler">The event handler to register.</param>
-    public void RegisterHandler<TEvent>(IAtlasEventHandler<TEvent> handler) where TEvent : AtlasEvent
+    /// <param name="handlers">The collection of event handlers to register with the dispatcher.</param>
+    public AtlasEventDispatcher(
+        IEnumerable<IAtlasEventHandlerBase> handlers)
     {
-        var eventType = typeof(TEvent);
-
-        if (!_handlers.TryGetValue(eventType, out var handlers))
+        foreach (var handler in handlers)
         {
-            handlers = [];
-            _handlers[eventType] = handlers;
-        }
+            if (!_handlers.TryGetValue(handler.EventType, out var eventHandlers))
+            {
+                eventHandlers = [];
+                _handlers[handler.EventType] = eventHandlers;
+            }
 
-        handlers.Add((@event, cancellationToken) =>
-            handler.HandleAsync((TEvent)@event, cancellationToken));
+            eventHandlers.Add(handler);
+        }
     }
 
     /// <inheritdoc/>
     public async Task PublishAsync(AtlasEvent @event, CancellationToken cancellationToken = default)
     {
-        if (!_handlers.TryGetValue(@event.GetType(), out var handlers))
+        if (!_handlers.TryGetValue(@event.GetType(), out var eventHandlers))
             return;
 
-        foreach (var handler in handlers)
+        foreach (var handler in eventHandlers)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            
-            await handler(@event, cancellationToken);
+
+            await handler.HandleAsync(
+                @event,
+                cancellationToken);
         }
     }
 }

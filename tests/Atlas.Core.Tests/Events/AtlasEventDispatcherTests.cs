@@ -15,10 +15,8 @@ public sealed class AtlasEventDispatcherTests
     [Fact]
     public async Task PublishAsync_Should_Invoke_Handler()
     {
-        var dispatcher = new AtlasEventDispatcher();
         var handler = new TestHandler();
-
-        dispatcher.RegisterHandler(handler);
+        var dispatcher = new AtlasEventDispatcher([handler]);
 
         await dispatcher.PublishAsync(
             new ApplicationStartedEvent(),
@@ -33,12 +31,11 @@ public sealed class AtlasEventDispatcherTests
     [Fact]
     public async Task PublishAsync_Should_Invoke_All_Registered_Handlers()
     {
-        var dispatcher = new AtlasEventDispatcher();
         var firstHandler = new TestHandler();
         var secondHandler = new TestHandler();
 
-        dispatcher.RegisterHandler(firstHandler);
-        dispatcher.RegisterHandler(secondHandler);
+        var dispatcher = new AtlasEventDispatcher(
+            [firstHandler, secondHandler]);
 
         await dispatcher.PublishAsync(
             new ApplicationStartedEvent(),
@@ -54,7 +51,7 @@ public sealed class AtlasEventDispatcherTests
     [Fact]
     public async Task PublishAsync_Should_Do_Nothing_When_No_Handler_Is_Registered()
     {
-        var dispatcher = new AtlasEventDispatcher();
+        var dispatcher = new AtlasEventDispatcher([]);
 
         await dispatcher.PublishAsync(
             new ApplicationStartedEvent(),
@@ -64,8 +61,25 @@ public sealed class AtlasEventDispatcherTests
         Assert.True(true, "PublishAsync completed without throwing when no handlers are registered.");
     }
 
-    private sealed class TestHandler
-    : IAtlasEventHandler<ApplicationStartedEvent>
+    /// <summary>
+    /// Represents a test implementation of the <see cref="IAtlasEventHandlerBase"/> interface for testing purposes.
+    /// </summary>
+    [Fact]
+    public async Task PublishAsync_Should_Not_Invoke_Handler_For_Different_Event_Type()
+    {
+        var handler = new TestHandler();
+        var dispatcher = new AtlasEventDispatcher([handler]);
+
+        await dispatcher.PublishAsync(
+            new TestEvent(),
+            TestContext.Current.CancellationToken);
+
+        Assert.False(handler.WasCalled);
+    }
+
+    private sealed record TestEvent : AtlasEvent;
+
+    private sealed class TestHandler : IAtlasEventHandler<ApplicationStartedEvent>
     {
         public bool WasCalled { get; private set; }
 
