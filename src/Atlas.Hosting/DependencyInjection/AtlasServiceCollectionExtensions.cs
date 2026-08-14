@@ -25,6 +25,8 @@ public static class AtlasServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration? configuration = null)
     {
+        services.AddLogging();
+
         var optionsBuilder = services.AddOptions<AtlasOptions>();
 
         if (configuration is not null)

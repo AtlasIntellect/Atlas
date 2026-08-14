@@ -1,5 +1,6 @@
 ﻿using Atlas.Abstractions.Configuration;
 using Atlas.Abstractions.Events;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Atlas.Hosting.Startup;
@@ -8,15 +9,19 @@ namespace Atlas.Hosting.Startup;
 /// Handles Atlas application startup events.
 /// </summary>
 public sealed class StartupHandler(
-    IOptions<AtlasOptions> options) : IAtlasEventHandler<ApplicationStartedEvent>
+    IOptions<AtlasOptions> options,
+    ILogger<StartupHandler> logger)
+    : IAtlasEventHandler<ApplicationStartedEvent>
 {
     /// <inheritdoc />
     public Task HandleAsync(
         ApplicationStartedEvent @event,
         CancellationToken cancellationToken = default)
     {
-        Console.WriteLine(
-            $"{options.Value.Name} started at {@event.OccurredAt:O}");
+        logger.LogInformation(
+            "{Name} started at {OccurredAt:O}",
+            options.Value.Name,
+            @event.OccurredAt);
 
         return Task.CompletedTask;
     }
