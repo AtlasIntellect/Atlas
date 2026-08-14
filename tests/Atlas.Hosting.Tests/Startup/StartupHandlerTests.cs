@@ -26,7 +26,10 @@ public sealed class StartupHandlerTests
 
         var handler = new StartupHandler(options, logger);
 
-        var @event = new ApplicationStartedEvent();
+        var @event = new ApplicationStartedEvent
+        {
+            InstanceId = Guid.NewGuid()
+        };
 
         await handler.HandleAsync(@event, TestContext.Current.CancellationToken);
 

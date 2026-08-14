@@ -40,6 +40,7 @@ public static class AtlasServiceCollectionExtensions
         services
             .AddSingleton<IAtlasEventDispatcher, AtlasEventDispatcher>()
             .AddSingleton<IAtlasRuntime, AtlasRuntime>()
+            .AddSingleton<IAtlasApplicationContext, AtlasApplicationContext>()
             .AddSingleton<IAtlasEventHandlerBase, StartupHandler>()
             .AddHostedService<AtlasRuntimeHostedService>();
 

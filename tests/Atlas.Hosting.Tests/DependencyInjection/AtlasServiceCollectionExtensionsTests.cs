@@ -85,4 +85,28 @@ public sealed class AtlasServiceCollectionExtensionsTests
 
         Assert.Equal("TestAtlas", options.Value.Name);
     }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasServiceCollectionExtensions.AddAtlas"/> registers <see cref="IAtlasApplicationContext"/>.
+    /// </summary>
+    [Fact]
+    public void AddAtlas_Should_RegisterApplicationContext()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "Atlas:Name", "TestAtlas" }
+            }).Build();
+
+        var services = new ServiceCollection();
+
+        services.AddAtlas(configuration);
+
+        using var provider = services.BuildServiceProvider();
+
+        var context = provider.GetRequiredService<IAtlasApplicationContext>();
+
+        Assert.Equal("TestAtlas", context.Name);
+        Assert.NotEqual(Guid.Empty, context.InstanceId);
+    }
 }

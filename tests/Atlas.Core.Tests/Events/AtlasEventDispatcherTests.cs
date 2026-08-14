@@ -19,7 +19,10 @@ public sealed class AtlasEventDispatcherTests
         var dispatcher = new AtlasEventDispatcher([handler]);
 
         await dispatcher.PublishAsync(
-            new ApplicationStartedEvent(),
+            new ApplicationStartedEvent
+            {
+                InstanceId = Guid.NewGuid()
+            },
             TestContext.Current.CancellationToken);
 
         Assert.True(handler.WasCalled);
@@ -38,7 +41,10 @@ public sealed class AtlasEventDispatcherTests
             [firstHandler, secondHandler]);
 
         await dispatcher.PublishAsync(
-            new ApplicationStartedEvent(),
+            new ApplicationStartedEvent
+            {
+                InstanceId = Guid.NewGuid()
+            },
             TestContext.Current.CancellationToken);
 
         Assert.True(firstHandler.WasCalled);
@@ -54,7 +60,10 @@ public sealed class AtlasEventDispatcherTests
         var dispatcher = new AtlasEventDispatcher([]);
 
         await dispatcher.PublishAsync(
-            new ApplicationStartedEvent(),
+            new ApplicationStartedEvent
+            {
+                InstanceId = Guid.NewGuid()
+            },
             TestContext.Current.CancellationToken);
 
         // Assert that the publish completed without throwing.
