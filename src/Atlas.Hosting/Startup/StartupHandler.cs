@@ -1,11 +1,14 @@
-﻿using Atlas.Abstractions.Events;
+﻿using Atlas.Abstractions.Configuration;
+using Atlas.Abstractions.Events;
+using Microsoft.Extensions.Options;
 
 namespace Atlas.Hosting.Startup;
 
 /// <summary>
 /// Handles Atlas application startup events.
 /// </summary>
-public sealed class StartupHandler : IAtlasEventHandler<ApplicationStartedEvent>
+public sealed class StartupHandler(
+    IOptions<AtlasOptions> options) : IAtlasEventHandler<ApplicationStartedEvent>
 {
     /// <inheritdoc />
     public Task HandleAsync(
@@ -13,7 +16,7 @@ public sealed class StartupHandler : IAtlasEventHandler<ApplicationStartedEvent>
         CancellationToken cancellationToken = default)
     {
         Console.WriteLine(
-            $"Atlas started at {@event.OccurredAt:O}");
+            $"{options.Value.Name} started at {@event.OccurredAt:O}");
 
         return Task.CompletedTask;
     }

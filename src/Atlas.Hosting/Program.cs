@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddAtlas();
+builder.Services.AddAtlas(builder.Configuration);
 
 using var host = builder.Build();
 
