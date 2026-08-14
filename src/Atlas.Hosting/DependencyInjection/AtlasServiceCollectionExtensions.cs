@@ -42,6 +42,11 @@ public static class AtlasServiceCollectionExtensions
         services
             .AddSingleton<IAtlasEventDispatcher, AtlasEventDispatcher>()
             .AddSingleton<IAtlasCommandDispatcher, AtlasCommandDispatcher>()
+            .AddSingleton<GetAtlasInfoCommandHandler>()
+            .AddSingleton<IAtlasCommandHandler<GetAtlasInfoCommand, AtlasInfo>>(
+                provider => provider.GetRequiredService<GetAtlasInfoCommandHandler>())
+            .AddSingleton<IAtlasCommandHandlerBase>(
+                provider => provider.GetRequiredService<GetAtlasInfoCommandHandler>())
             .AddSingleton<IAtlasRuntime, AtlasRuntime>()
             .AddSingleton<IAtlasApplicationContext, AtlasApplicationContext>()
             .AddSingleton<IAtlasEventHandlerBase, StartupHandler>()
