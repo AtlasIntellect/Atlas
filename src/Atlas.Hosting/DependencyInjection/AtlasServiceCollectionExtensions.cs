@@ -1,6 +1,8 @@
-﻿using Atlas.Abstractions.Configuration;
+﻿using Atlas.Abstractions.Commands;
+using Atlas.Abstractions.Configuration;
 using Atlas.Abstractions.Events;
 using Atlas.Abstractions.Runtime;
+using Atlas.Core.Commands;
 using Atlas.Core.Events;
 using Atlas.Core.Runtime;
 using Atlas.Hosting.Runtime;
@@ -39,6 +41,7 @@ public static class AtlasServiceCollectionExtensions
 
         services
             .AddSingleton<IAtlasEventDispatcher, AtlasEventDispatcher>()
+            .AddSingleton<IAtlasCommandDispatcher, AtlasCommandDispatcher>()
             .AddSingleton<IAtlasRuntime, AtlasRuntime>()
             .AddSingleton<IAtlasApplicationContext, AtlasApplicationContext>()
             .AddSingleton<IAtlasEventHandlerBase, StartupHandler>()
