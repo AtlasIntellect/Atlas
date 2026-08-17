@@ -1,5 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <ProjectReference Include="..\Atlas.Abstractions\Atlas.Abstractions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageVersion Update="SonarAnalyzer.CSharp" Version="10.32.0.713" />
   </ItemGroup>
   <ItemGroup>

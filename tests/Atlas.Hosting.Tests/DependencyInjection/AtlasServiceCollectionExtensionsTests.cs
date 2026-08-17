@@ -1,11 +1,13 @@
 ﻿using Atlas.Abstractions.Configuration;
 using Atlas.Abstractions.Events;
+using Atlas.Abstractions.Memory;
 using Atlas.Abstractions.Runtime;
 using Atlas.Core.Events;
 using Atlas.Core.Runtime;
 using Atlas.Hosting.DependencyInjection;
 using Atlas.Hosting.Runtime;
 using Atlas.Hosting.Startup;
+using Atlas.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -108,5 +110,22 @@ public sealed class AtlasServiceCollectionExtensionsTests
 
         Assert.Equal("TestAtlas", context.Name);
         Assert.NotEqual(Guid.Empty, context.InstanceId);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasServiceCollectionExtensions.AddAtlas"/> registers <see cref="IAtlasMemory"/>.
+    /// </summary>
+    [Fact]
+    public void AddAtlas_Should_RegisterAtlasMemory()
+    {
+        var services = new ServiceCollection();
+
+        services.AddAtlas();
+
+        using var provider = services.BuildServiceProvider();
+
+        var memory = provider.GetRequiredService<IAtlasMemory>();
+
+        Assert.IsType<AtlasMemory>(memory);
     }
 }

@@ -3,6 +3,8 @@ using Atlas.Abstractions.Configuration;
 using Atlas.Core.Commands;
 using Atlas.Hosting.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Atlas.Abstractions.Memory;
 using Xunit;
 
 namespace Atlas.Hosting.Tests.Integration;
@@ -35,5 +37,37 @@ public sealed class AtlasCommandIntegrationTests
 
         Assert.Equal("Atlas", result.Name);
         Assert.NotEqual(Guid.Empty, result.InstanceId);
+    }
+
+    /// <summary>
+    /// Verifies that dispatching a <see cref="StoreMemoryCommand"/> through the host
+    /// executes the registered handler and returns a valid memory entry.
+    /// </summary>
+    [Fact]
+    public async Task DispatchAsync_Should_ExecuteRegisteredStoreMemoryCommand()
+    {
+        var builder = Host.CreateApplicationBuilder();
+
+        builder.Services.AddAtlas(builder.Configuration);
+
+        using var host = builder.Build();
+
+        await host.StartAsync(TestContext.Current.CancellationToken);
+
+        var dispatcher =
+            host.Services.GetRequiredService<IAtlasCommandDispatcher>();
+
+        var content = "Test memory content";
+
+        var entry = await dispatcher.DispatchAsync<StoreMemoryCommand, AtlasMemoryEntry>(
+            new StoreMemoryCommand(content),
+            TestContext.Current.CancellationToken);
+
+        Assert.NotNull(entry);
+        Assert.Equal(content, entry.Content);
+        Assert.NotEqual(Guid.Empty, entry.Id);
+        Assert.NotEqual(default, entry.CreatedAt);
+
+        await host.StopAsync(TestContext.Current.CancellationToken);
     }
 }

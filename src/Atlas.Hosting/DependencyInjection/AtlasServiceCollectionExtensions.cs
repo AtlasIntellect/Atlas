@@ -1,12 +1,14 @@
 ﻿using Atlas.Abstractions.Commands;
 using Atlas.Abstractions.Configuration;
 using Atlas.Abstractions.Events;
+using Atlas.Abstractions.Memory;
 using Atlas.Abstractions.Runtime;
 using Atlas.Core.Commands;
 using Atlas.Core.Events;
 using Atlas.Core.Runtime;
 using Atlas.Hosting.Runtime;
 using Atlas.Hosting.Startup;
+using Atlas.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -47,6 +49,12 @@ public static class AtlasServiceCollectionExtensions
                 provider => provider.GetRequiredService<GetAtlasInfoCommandHandler>())
             .AddSingleton<IAtlasCommandHandlerBase>(
                 provider => provider.GetRequiredService<GetAtlasInfoCommandHandler>())
+            .AddSingleton<IAtlasMemory, AtlasMemory>()
+            .AddSingleton<StoreMemoryCommandHandler>()
+            .AddSingleton<IAtlasCommandHandler<StoreMemoryCommand, AtlasMemoryEntry>>(
+                provider => provider.GetRequiredService<StoreMemoryCommandHandler>())
+            .AddSingleton<IAtlasCommandHandlerBase>(
+                provider => provider.GetRequiredService<StoreMemoryCommandHandler>())
             .AddSingleton<IAtlasRuntime, AtlasRuntime>()
             .AddSingleton<IAtlasApplicationContext, AtlasApplicationContext>()
             .AddSingleton<IAtlasEventHandlerBase, StartupHandler>()
