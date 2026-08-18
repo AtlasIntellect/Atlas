@@ -2,47 +2,51 @@ name: Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
-    name: Build and analyze
-    runs-on: ubuntu-latest
+    name: Build and Analyze
+    runs-on: self-hosted
 
     steps:
-    - uses: actions/checkout@v7
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v6
-      with:
-        dotnet-version: 10.0.x
-        
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Cache SonarQube packages
-      uses: actions/cache@v4
-      with:
-        path: ~\.sonar\cache
-        key: ${{ runner.os }}-sonar
-        restore-keys: ${{ runner.os }}-sonar
-        
-    - name: Install dotnet-sonarscanner
-      run: dotnet tool update --global dotnet-sonarscanner
-        
-    - name: Start SonarQube Analysis
-      run: |
-        dotnet-sonarscanner begin /k:"atlas_sonarqube" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.verbose=true /d:sonar.scanner.scanAll=false /d:sonar.cs.vscoveragexml.reportsPaths=coverage_data.xml
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Build
-      run: dotnet build af-next.slnx --no-incremental
-      
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
 
-    - name: Finish SonarQube Analysis
-      if: success()
-      run: |
-        dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+      - name: Restore dependencies
+        run: dotnet restore af-next.slnx
+
+      - name: Install SonarScanner
+        run: dotnet tool update --global dotnet-sonarscanner
+
+      - name: Begin SonarQube Analysis
+        run: |
+          dotnet-sonarscanner begin \
+            /k:"atlas_sonarqube" \
+            /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.verbose=true \
+            /d:sonar.scanner.scanAll=false
+
+      - name: Build
+        run: dotnet build af-next.slnx --no-restore
+
+      - name: Test
+        run: |
+          dotnet test af-next.slnx \
+            --no-build \
+            --collect:"XPlat Code Coverage"
+
+      - name: End SonarQube Analysis
+        run: |
+          dotnet-sonarscanner end \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
