@@ -3,6 +3,9 @@
     <File Path="docker-compose.yml" />
     <File Path="Dockerfile" />
   </Folder>
+  <Folder Name="/github-workflows/">
+    <File Path=".github/workflows/build.yml" />
+  </Folder>
   <Folder Name="/solution/">
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
