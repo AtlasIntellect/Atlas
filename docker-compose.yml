@@ -12,12 +12,12 @@ services:
       - ci
 
   github-runner:
-    image: myoung34/github-runner:latest
+    build: .
     container_name: github-runner
     restart: always
     environment:
       REPO_URL: https://github.com/pietervoorschot/Atlas
-      RUNNER_TOKEN: AUJRR6WSWDXWKB43YXE466TKQQLYA
+      RUNNER_TOKEN: ${RUNNER_TOKEN}
     networks:
       - ci
 
