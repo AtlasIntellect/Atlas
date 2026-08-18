@@ -23,8 +23,12 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Install SonarScanner
-        run: dotnet tool update --global dotnet-sonarscanner
+      - name: Begin SonarQube Analysis
+        run: |
+          dotnet-sonarscanner begin \
+            /k:"atlas_sonarqube" \
+            /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       - name: Begin SonarQube Analysis
         run: |
