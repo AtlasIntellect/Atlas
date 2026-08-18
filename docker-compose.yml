@@ -1,0 +1,21 @@
+services:
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    networks:
+      - ci
+
+  github-runner:
+    image: myoung34/github-runner:latest
+    container_name: github-runner
+    restart: always
+    environment:
+      REPO_URL: https://github.com/pietervoorschot/Atlas
+      RUNNER_TOKEN: AUJRR6WSWDXWKB43YXE466TKQQLYA
+    networks:
+      - ci
+
+networks:
+  ci:
