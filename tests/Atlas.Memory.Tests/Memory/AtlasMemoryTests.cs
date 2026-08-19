@@ -11,7 +11,6 @@ public sealed class AtlasMemoryTests
     /// <summary>
     /// Verifies that <see cref="AtlasMemory.StoreAsync"/> stores a memory.
     /// </summary>
-    /// <returns></returns>
     [Fact]
     public async Task StoreAsync_Should_StoreMemory()
     {
@@ -123,6 +122,165 @@ public sealed class AtlasMemoryTests
         await Assert.ThrowsAsync<OperationCanceledException>(
             () => memory.StoreAsync(
                 entry,
+                cancellationTokenSource.Token));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.SearchAsync"/> returns memories
+    /// containing the specified query.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_ReturnMatchingMemories()
+    {
+        var memory = new AtlasMemory();
+
+        var matchingEntry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon camera",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        var nonMatchingEntry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I like pizza",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        await memory.StoreAsync(
+            matchingEntry,
+            TestContext.Current.CancellationToken);
+
+        await memory.StoreAsync(
+            nonMatchingEntry,
+            TestContext.Current.CancellationToken);
+
+        var result = await memory.SearchAsync(
+            "Canon",
+            TestContext.Current.CancellationToken);
+
+        var entry = Assert.Single(result);
+        Assert.Equal(matchingEntry, entry);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.SearchAsync"/> performs a
+    /// case-insensitive search.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_BeCaseInsensitive()
+    {
+        var memory = new AtlasMemory();
+
+        var entry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon camera",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        await memory.StoreAsync(
+            entry,
+            TestContext.Current.CancellationToken);
+
+        var result = await memory.SearchAsync(
+            "CANON",
+            TestContext.Current.CancellationToken);
+
+        var matchedEntry = Assert.Single(result);
+        Assert.Equal(entry, matchedEntry);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.SearchAsync"/> supports partial
+    /// matches within memory content.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_ReturnPartialMatches()
+    {
+        var memory = new AtlasMemory();
+
+        var entry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon camera",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        await memory.StoreAsync(
+            entry,
+            TestContext.Current.CancellationToken);
+
+        var result = await memory.SearchAsync(
+            "cam",
+            TestContext.Current.CancellationToken);
+
+        var matchedEntry = Assert.Single(result);
+        Assert.Equal(entry, matchedEntry);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.SearchAsync"/> returns an empty
+    /// collection when no memories match the query.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_ReturnEmpty_WhenNoMemoriesMatch()
+    {
+        var memory = new AtlasMemory();
+        var entry = CreateMemory();
+
+        await memory.StoreAsync(
+            entry,
+            TestContext.Current.CancellationToken);
+
+        var result = await memory.SearchAsync(
+            "nonexistent",
+            TestContext.Current.CancellationToken);
+
+        Assert.Empty(result);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.SearchAsync"/> returns an empty
+    /// collection when the query is empty or whitespace.
+    /// </summary>
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public async Task SearchAsync_Should_ReturnEmpty_WhenQueryIsEmpty(
+        string query)
+    {
+        var memory = new AtlasMemory();
+        var entry = CreateMemory();
+
+        await memory.StoreAsync(
+            entry,
+            TestContext.Current.CancellationToken);
+
+        var result = await memory.SearchAsync(
+            query,
+            TestContext.Current.CancellationToken);
+
+        Assert.Empty(result);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.SearchAsync"/> throws when the
+    /// cancellation token has already been cancelled.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_Throw_WhenCancellationRequested()
+    {
+        var memory = new AtlasMemory();
+
+        using var cancellationTokenSource = new CancellationTokenSource();
+        await cancellationTokenSource.CancelAsync();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => memory.SearchAsync(
+                "test",
                 cancellationTokenSource.Token));
     }
 

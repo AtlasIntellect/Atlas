@@ -32,4 +32,24 @@ public sealed class AtlasMemory : IAtlasMemory
 
         return Task.FromResult(memory);
     }
+
+    /// <inheritdoc/>
+    public Task<IReadOnlyList<AtlasMemoryEntry>> SearchAsync(
+        string query,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (string.IsNullOrWhiteSpace(query))
+            return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
+
+        var results = _memories.Values
+            .Where(memory =>
+                memory.Content.Contains(
+                    query,
+                    StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>(results);
+    }
 }

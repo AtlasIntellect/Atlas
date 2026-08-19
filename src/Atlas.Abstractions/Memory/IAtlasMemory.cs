@@ -27,4 +27,14 @@ public interface IAtlasMemory
     Task<AtlasMemoryEntry?> GetAsync(
         Guid id,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Searches for memories that match the specified query.
+    /// </summary>
+    /// <param name="query">The search query.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation and containing the matching memories.</returns>
+    Task<IReadOnlyList<AtlasMemoryEntry>> SearchAsync(
+        string query,
+        CancellationToken cancellationToken = default);
 }

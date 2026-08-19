@@ -167,5 +167,14 @@ public sealed class GetMemoryCommandHandlerTests
                     ? Entry
                     : null);
         }
+
+        public Task<IReadOnlyList<AtlasMemoryEntry>> SearchAsync(
+            string query,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
+        }
     }
 }
