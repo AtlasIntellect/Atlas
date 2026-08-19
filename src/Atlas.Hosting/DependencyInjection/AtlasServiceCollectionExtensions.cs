@@ -55,6 +55,11 @@ public static class AtlasServiceCollectionExtensions
                 provider => provider.GetRequiredService<StoreMemoryCommandHandler>())
             .AddSingleton<IAtlasCommandHandlerBase>(
                 provider => provider.GetRequiredService<StoreMemoryCommandHandler>())
+            .AddSingleton<GetMemoryCommandHandler>()
+            .AddSingleton<IAtlasCommandHandler<GetMemoryCommand, AtlasMemoryEntry?>>(
+                provider => provider.GetRequiredService<GetMemoryCommandHandler>())
+            .AddSingleton<IAtlasCommandHandlerBase>(
+                provider => provider.GetRequiredService<GetMemoryCommandHandler>())
             .AddSingleton<IAtlasRuntime, AtlasRuntime>()
             .AddSingleton<IAtlasApplicationContext, AtlasApplicationContext>()
             .AddSingleton<IAtlasEventHandlerBase, StartupHandler>()

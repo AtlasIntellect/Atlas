@@ -1,5 +1,4 @@
 ﻿using Atlas.Abstractions.Commands;
-using Atlas.Abstractions.Configuration;
 using Atlas.Core.Commands;
 using Atlas.Hosting.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,6 +66,46 @@ public sealed class AtlasCommandIntegrationTests
         Assert.Equal(content, entry.Content);
         Assert.NotEqual(Guid.Empty, entry.Id);
         Assert.NotEqual(default, entry.CreatedAt);
+
+        await host.StopAsync(TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="GetMemoryCommand"/> retrieves a memory that was
+    /// previously stored through the <see cref="AtlasCommandDispatcher"/>.
+    /// </summary>
+    /// <returns></returns>
+    [Fact]
+    public async Task DispatchAsync_Should_RetrievePreviouslyStoredMemory()
+    {
+        var builder = Host.CreateApplicationBuilder();
+
+        builder.Services.AddAtlas();
+
+        using var host = builder.Build();
+
+        await host.StartAsync(
+            TestContext.Current.CancellationToken);
+        
+        var dispatcher = host.Services
+            .GetRequiredService<IAtlasCommandDispatcher>();
+
+        var stored = await dispatcher.DispatchAsync<
+            StoreMemoryCommand,
+            AtlasMemoryEntry>(
+            new StoreMemoryCommand("Integration test memory"),
+            TestContext.Current.CancellationToken);
+        
+        var retrieved = await dispatcher.DispatchAsync<
+            GetMemoryCommand,
+            AtlasMemoryEntry?>(
+            new GetMemoryCommand(stored.Id),
+            TestContext.Current.CancellationToken);
+
+        Assert.NotNull(retrieved);
+        Assert.Equal(stored.Id, retrieved.Id);
+        Assert.Equal(stored.Content, retrieved.Content);
+        Assert.Equal(stored.CreatedAt, retrieved.CreatedAt);
 
         await host.StopAsync(TestContext.Current.CancellationToken);
     }

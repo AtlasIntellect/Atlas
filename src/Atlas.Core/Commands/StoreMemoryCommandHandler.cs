@@ -6,7 +6,7 @@ namespace Atlas.Core.Commands;
 /// <summary>
 /// 
 /// </summary>
-/// <param name="memory">The atlas memory service.</param>
+/// <param name="memory">The Atlas memory service.</param>
 public sealed class StoreMemoryCommandHandler(
     IAtlasMemory memory)
     : IAtlasCommandHandler<StoreMemoryCommand, AtlasMemoryEntry>
