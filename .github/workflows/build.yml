@@ -9,41 +9,22 @@ on:
 jobs:
   build:
     name: Build and Analyze
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
-      - name: Install SonarScanner
-        run: |
-          dotnet tool install --global dotnet-sonarscanner || \
-          dotnet tool update --global dotnet-sonarscanner
-
-          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
-
       - name: Restore dependencies
         run: dotnet restore
-
-      - name: Begin SonarQube Analysis
-        run: |
-          $HOME/.dotnet/tools/dotnet-sonarscanner begin \
-            /k:"atlas_sonarqube" \
-            /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       - name: Build
         run: dotnet build --no-restore
 
       - name: Test
         run: dotnet test --no-build
-
-      - name: End SonarQube Analysis
-        run: |
-          $HOME/.dotnet/tools/dotnet-sonarscanner end \
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}"

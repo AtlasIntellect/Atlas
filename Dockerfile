@@ -2,7 +2,7 @@ FROM myoung34/github-runner:latest
 
 USER root
 
-RUN apt-get update && apt-get install -y wget
+RUN apt-get update && apt-get install -y wget openjdk-17-jre
 
 RUN wget https://dot.net/v1/dotnet-install.sh \
     && chmod +x dotnet-install.sh \
