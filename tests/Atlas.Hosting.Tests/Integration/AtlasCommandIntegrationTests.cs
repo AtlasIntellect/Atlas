@@ -1,9 +1,10 @@
 ﻿using Atlas.Abstractions.Commands;
+using Atlas.Abstractions.Interaction;
+using Atlas.Abstractions.Memory;
 using Atlas.Core.Commands;
 using Atlas.Hosting.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Atlas.Abstractions.Memory;
 using Xunit;
 
 namespace Atlas.Hosting.Tests.Integration;
@@ -124,7 +125,7 @@ public sealed class AtlasCommandIntegrationTests
 
         await host.StartAsync(
             TestContext.Current.CancellationToken);
-        
+
         var dispatcher = host.Services
             .GetRequiredService<IAtlasCommandDispatcher>();
 
@@ -151,21 +152,61 @@ public sealed class AtlasCommandIntegrationTests
             IReadOnlyList<AtlasMemoryEntry>>(
             new SearchMemoryCommand("camera"),
             TestContext.Current.CancellationToken);
-        
+
         Assert.Equal(2, results.Count);
-        
+
         Assert.Contains(
             results,
             memory => memory.Id == cameraMemory.Id);
-        
+
         Assert.Contains(
             results,
             memory => memory.Id == secondCameraMemory.Id);
-        
+
         Assert.DoesNotContain(
             results,
             memory => memory.Id == pizzaMemory.Id);
 
         await host.StopAsync(TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
+    /// Verifies that an interaction can be processed through the Atlas command dispatcher.
+    /// </summary>
+    [Fact]
+    public async Task DispatchAsync_Should_ProcessInteraction()
+    {
+        var builder = Host.CreateApplicationBuilder();
+
+        builder.Services.AddAtlas();
+
+        using var host = builder.Build();
+
+        await host.StartAsync(
+            TestContext.Current.CancellationToken);
+
+        var dispatcher = host.Services
+            .GetRequiredService<IAtlasCommandDispatcher>();
+
+        var interaction = new AtlasInteraction
+        {
+            Input = "Hello Atlas"
+        };
+
+        var result = await dispatcher.DispatchAsync<
+            ProcessInteractionCommand,
+            AtlasResponse>(
+            new ProcessInteractionCommand(interaction),
+            TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+        Assert.NotEqual(Guid.Empty, result.Id);
+        Assert.NotEqual(default, result.CreatedAt);
+        Assert.Equal(
+            "Atlas received: Hello Atlas",
+            result.Content);
+
+        await host.StopAsync(
+            TestContext.Current.CancellationToken);
     }
 }
