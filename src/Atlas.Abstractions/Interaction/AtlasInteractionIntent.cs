@@ -13,5 +13,10 @@ public enum AtlasInteractionIntent
     /// <summary>
     /// Represents an intent to search memory within the Atlas interaction context.
     /// </summary>
-    SearchMemory = 1
+    SearchMemory = 1,
+    
+    /// <summary>
+    /// Represents an intent to store memory.
+    /// </summary>
+    StoreMemory = 2
 }

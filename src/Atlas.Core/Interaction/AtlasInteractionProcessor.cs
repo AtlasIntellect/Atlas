@@ -9,7 +9,8 @@ namespace Atlas.Core.Interaction;
 /// Provides the default implementation for processing Atlas interactions.
 /// </summary>
 public sealed class AtlasInteractionProcessor(
-    IAtlasCommandDispatcher commandDispatcher)
+    IAtlasCommandDispatcher commandDispatcher,
+    IAtlasInteractionQueryExtractor queryExtractor)
     : IAtlasInteractionProcessor
 {
     /// <inheritdoc/>
@@ -25,16 +26,39 @@ public sealed class AtlasInteractionProcessor(
         switch (intent)
         {
             case AtlasInteractionIntent.SearchMemory:
+            {
+                var query = queryExtractor.ExtractQuery(interaction);
+
+                var memories =
                 await commandDispatcher.DispatchAsync<
                     SearchMemoryCommand,
                     IReadOnlyList<AtlasMemoryEntry>>(
-                    new SearchMemoryCommand(interaction.Input),
+                    new SearchMemoryCommand(query),
+                    cancellationToken);
+
+                var content = memories.Count == 0
+                    ? "I couldn't find any matching memories."
+                    : string.Join(
+                        Environment.NewLine,
+                        memories.Select(memory => memory.Content));
+
+                return new AtlasResponse
+                {
+                    Content = content
+                };
+            }
+
+            case AtlasInteractionIntent.StoreMemory:
+            {
+                await commandDispatcher.DispatchAsync<StoreMemoryCommand, AtlasMemoryEntry>(
+                    new StoreMemoryCommand(interaction.Input),
                     cancellationToken);
 
                 return new AtlasResponse
                 {
-                    Content = "Atlas detected a memory search."
+                    Content = "Memory stored successfully."
                 };
+            }
 
             default:
                 return new AtlasResponse

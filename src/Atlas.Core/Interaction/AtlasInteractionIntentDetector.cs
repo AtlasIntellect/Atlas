@@ -19,7 +19,19 @@ public static class AtlasInteractionIntentDetector
 
         var input = interaction.Input.Trim();
 
-        if (input.Contains("camera", StringComparison.OrdinalIgnoreCase))
+        if (input.StartsWith(
+                "remember ",
+                StringComparison.OrdinalIgnoreCase) ||
+            input.StartsWith(
+                "store ",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return AtlasInteractionIntent.StoreMemory;
+        }
+
+        if (input.Contains(
+                "camera",
+                StringComparison.OrdinalIgnoreCase))
         {
             return AtlasInteractionIntent.SearchMemory;
         }

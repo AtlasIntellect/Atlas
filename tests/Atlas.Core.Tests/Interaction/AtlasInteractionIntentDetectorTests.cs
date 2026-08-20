@@ -84,4 +84,61 @@ public sealed class AtlasInteractionIntentDetectorTests
             AtlasInteractionIntent.SearchMemory,
             result);
     }
+
+    /// <summary>
+    /// Verifies that an interaction beginning with "remember" is detected as a memory store.
+    /// </summary>
+    [Fact]
+    public void Detect_Should_ReturnStoreMemory_WhenInputStartsWithRemember()
+    {
+        var interaction = new AtlasInteraction
+        {
+            Input = "Remember that I bought a Canon EOS 350D."
+        };
+
+        var result =
+            AtlasInteractionIntentDetector.Detect(interaction);
+
+        Assert.Equal(
+            AtlasInteractionIntent.StoreMemory,
+            result);
+    }
+
+    /// <summary>
+    /// Verifies that an interaction beginning with "store" is detected as a memory store.
+    /// </summary>
+    [Fact]
+    public void Detect_Should_ReturnStoreMemory_WhenInputStartsWithStore()
+    {
+        var interaction = new AtlasInteraction
+        {
+            Input = "Store this memory."
+        };
+
+        var result =
+            AtlasInteractionIntentDetector.Detect(interaction);
+
+        Assert.Equal(
+            AtlasInteractionIntent.StoreMemory,
+            result);
+    }
+
+    /// <summary>
+    /// Verifies that store-memory detection is case insensitive.
+    /// </summary>
+    [Fact]
+    public void Detect_Should_BeCaseInsensitiveForStoreMemory()
+    {
+        var interaction = new AtlasInteraction
+        {
+            Input = "REMEMBER THAT I BOUGHT A CANON EOS 350D."
+        };
+
+        var result =
+            AtlasInteractionIntentDetector.Detect(interaction);
+
+        Assert.Equal(
+            AtlasInteractionIntent.StoreMemory,
+            result);
+    }
 }

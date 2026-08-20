@@ -77,6 +77,12 @@ public static class AtlasServiceCollectionExtensions
             .AddSingleton<IAtlasCommandHandlerBase>(
                 provider =>
                     provider.GetRequiredService<ProcessInteractionCommandHandler>())
+            .AddSingleton<
+                IAtlasInteractionQueryExtractor,
+                AtlasInteractionQueryExtractor>()
+            .AddSingleton<
+                IAtlasInteractionProcessor,
+                AtlasInteractionProcessor>()
             .AddSingleton<IAtlasRuntime, AtlasRuntime>()
             .AddSingleton<IAtlasApplicationContext, AtlasApplicationContext>()
             .AddSingleton<IAtlasEventHandlerBase, StartupHandler>()

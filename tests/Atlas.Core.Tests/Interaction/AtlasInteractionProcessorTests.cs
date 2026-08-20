@@ -20,8 +20,15 @@ public sealed class AtlasInteractionProcessorTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
+        var queryExtractor = new TestQueryExtractor
+        {
+            Query = "Hello Atlas"
+        };
+
         var processor =
-            new AtlasInteractionProcessor(commandDispatcher);
+            new AtlasInteractionProcessor(
+                commandDispatcher,
+                queryExtractor);
 
         var interaction = new AtlasInteraction
         {
@@ -46,7 +53,6 @@ public sealed class AtlasInteractionProcessorTests
     /// <param name="expectedContent">The expected response content.</param>
     [Theory]
     [InlineData("Hello Atlas", "Atlas received: Hello Atlas")]
-    [InlineData("Remember this", "Atlas received: Remember this")]
     [InlineData("How are you?", "Atlas received: How are you?")]
     public async Task ProcessAsync_Should_CreateResponseFromInput(
         string input,
@@ -54,8 +60,15 @@ public sealed class AtlasInteractionProcessorTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
+        var queryExtractor = new TestQueryExtractor
+        {
+            Query = "Hello Atlas"
+        };
+
         var processor =
-            new AtlasInteractionProcessor(commandDispatcher);
+            new AtlasInteractionProcessor(
+                commandDispatcher,
+                queryExtractor);
 
         var interaction = new AtlasInteraction
         {
@@ -79,8 +92,15 @@ public sealed class AtlasInteractionProcessorTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
+        var queryExtractor = new TestQueryExtractor
+        {
+            Query = "Hello Atlas"
+        };
+
         var processor =
-            new AtlasInteractionProcessor(commandDispatcher);
+            new AtlasInteractionProcessor(
+                commandDispatcher,
+                queryExtractor);
 
         var interaction = new AtlasInteraction
         {
@@ -105,8 +125,15 @@ public sealed class AtlasInteractionProcessorTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
+        var queryExtractor = new TestQueryExtractor
+        {
+            Query = "camera"
+        };
+
         var processor =
-            new AtlasInteractionProcessor(commandDispatcher);
+            new AtlasInteractionProcessor(
+                commandDispatcher,
+                queryExtractor);
 
         var interaction = new AtlasInteraction
         {
@@ -118,7 +145,7 @@ public sealed class AtlasInteractionProcessorTests
             TestContext.Current.CancellationToken);
 
         Assert.Equal(
-            "Atlas detected a memory search.",
+            "I couldn't find any matching memories.",
             response.Content);
     }
 
@@ -130,8 +157,15 @@ public sealed class AtlasInteractionProcessorTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
+        var queryExtractor = new TestQueryExtractor
+        {
+            Query = "camera"
+        };
+
         var processor =
-            new AtlasInteractionProcessor(commandDispatcher);
+            new AtlasInteractionProcessor(
+                commandDispatcher,
+                queryExtractor);
 
         var interaction = new AtlasInteraction
         {
@@ -147,7 +181,7 @@ public sealed class AtlasInteractionProcessorTests
                 commandDispatcher.ReceivedCommand);
 
         Assert.Equal(
-            interaction.Input,
+            queryExtractor.Query,
             command.Query);
     }
 
@@ -159,8 +193,15 @@ public sealed class AtlasInteractionProcessorTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
+        var queryExtractor = new TestQueryExtractor
+        {
+            Query = "camera"
+        };
+
         var processor =
-            new AtlasInteractionProcessor(commandDispatcher);
+            new AtlasInteractionProcessor(
+                commandDispatcher,
+                queryExtractor);
 
         using var cancellationTokenSource = new CancellationTokenSource();
 
@@ -181,9 +222,163 @@ public sealed class AtlasInteractionProcessorTests
             commandDispatcher.ReceivedCancellationToken);
     }
 
+    /// <summary>
+    /// Verifies that a memory search interaction includes matching memories
+    /// in the produced response.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_Should_ReturnSearchResults()
+    {
+        var memory = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon EOS 350D camera.",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        var commandDispatcher = new TestCommandDispatcher
+        {
+            SearchResults = [memory]
+        };
+
+        var queryExtractor = new TestQueryExtractor
+        {
+            Query = "camera"
+        };
+
+        var processor =
+            new AtlasInteractionProcessor(
+                commandDispatcher,
+                queryExtractor);
+
+        var interaction = new AtlasInteraction
+        {
+            Input = "What camera do I have?"
+        };
+
+        var response = await processor.ProcessAsync(
+            interaction,
+            TestContext.Current.CancellationToken);
+
+        Assert.Contains(
+            memory.Content,
+            response.Content);
+    }
+
+    /// <summary>
+    /// Verifies that a memory storage interaction dispatches a store command.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_Should_DispatchStoreMemoryCommand()
+    {
+        var commandDispatcher = new TestCommandDispatcher();
+
+        var queryExtractor = new TestQueryExtractor
+        {
+            Query = "camera"
+        };
+
+        var processor =
+            new AtlasInteractionProcessor(
+                commandDispatcher,
+                queryExtractor);
+
+        var interaction = new AtlasInteraction
+        {
+            Input = "Remember that I bought a Canon EOS 350D."
+        };
+
+        await processor.ProcessAsync(
+            interaction,
+            TestContext.Current.CancellationToken);
+
+        var command =
+            Assert.IsType<StoreMemoryCommand>(
+                commandDispatcher.ReceivedCommand);
+
+        Assert.Equal(
+            interaction.Input,
+            command.Content);
+    }
+
+    /// <summary>
+    /// Verifies that a successful memory storage interaction returns a confirmation.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_Should_ReturnMemoryStoredResponse()
+    {
+        var commandDispatcher = new TestCommandDispatcher();
+
+        var queryExtractor = new TestQueryExtractor
+        {
+            Query = "camera"
+        };
+
+        var processor =
+            new AtlasInteractionProcessor(
+                commandDispatcher,
+                queryExtractor);
+
+        var interaction = new AtlasInteraction
+        {
+            Input = "Remember that I bought a Canon EOS 350D."
+        };
+
+        var response = await processor.ProcessAsync(
+            interaction,
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            "Memory stored successfully.",
+            response.Content);
+    }
+
+    /// <summary>
+    /// Verifies that a memory search interaction uses the query extractor
+    /// when creating the search command.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_Should_UseQueryExtractorForMemorySearch()
+    {
+        var commandDispatcher = new TestCommandDispatcher();
+
+        var queryExtractor = new TestQueryExtractor
+        {
+            Query = "camera"
+        };
+
+        var processor =
+            new AtlasInteractionProcessor(
+                commandDispatcher,
+                queryExtractor);
+
+        var interaction = new AtlasInteraction
+        {
+            Input = "What camera did I buy?"
+        };
+
+        await processor.ProcessAsync(
+            interaction,
+            TestContext.Current.CancellationToken);
+
+        var command =
+            Assert.IsType<SearchMemoryCommand>(
+                commandDispatcher.ReceivedCommand);
+
+        Assert.Equal(
+            "camera",
+            command.Query);
+
+        Assert.Same(
+            interaction,
+            queryExtractor.ReceivedInteraction);
+    }
+
     private sealed class TestCommandDispatcher : IAtlasCommandDispatcher
     {
         public IAtlasCommand? ReceivedCommand { get; private set; }
+
+        public IReadOnlyList<AtlasMemoryEntry> SearchResults { get; init; } = [];
 
         public CancellationToken ReceivedCancellationToken { get; private set; }
 
@@ -195,8 +390,41 @@ public sealed class AtlasInteractionProcessorTests
             ReceivedCommand = command;
             ReceivedCancellationToken = cancellationToken;
 
-            return Task.FromResult(
-                (TResult)(object)Array.Empty<AtlasMemoryEntry>());
+            if (command is SearchMemoryCommand)
+            {
+                return Task.FromResult(
+                    (TResult)SearchResults);
+            }
+
+            if (command is StoreMemoryCommand storeCommand)
+            {
+                return Task.FromResult(
+                    (TResult)(object)new AtlasMemoryEntry
+                    {
+                        Id = Guid.NewGuid(),
+                        Content = storeCommand.Content,
+                        CreatedAt = DateTimeOffset.UtcNow
+                    });
+            }
+
+            throw new InvalidOperationException(
+                $"Unexpected command type: {typeof(TCommand).FullName}");
+        }
+    }
+
+    private sealed class TestQueryExtractor
+        : IAtlasInteractionQueryExtractor
+    {
+        public string Query { get; init; } = string.Empty;
+
+        public AtlasInteraction? ReceivedInteraction { get; private set; }
+
+        public string ExtractQuery(
+            AtlasInteraction interaction)
+        {
+            ReceivedInteraction = interaction;
+
+            return Query;
         }
     }
 }
