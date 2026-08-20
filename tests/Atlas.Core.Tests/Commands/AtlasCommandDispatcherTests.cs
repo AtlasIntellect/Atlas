@@ -17,7 +17,11 @@ public sealed class AtlasCommandDispatcherTests
     public async Task DispatchAsync_Should_Invoke_Handler()
     {
         var handler = new TestCommandHandler();
-        var dispatcher = new AtlasCommandDispatcher([handler]);
+
+
+        var dispatcher =
+            new AtlasCommandDispatcher(
+                new TestServiceProvider(handler));
 
         await dispatcher.DispatchAsync<TestCommand, string>(
             new TestCommand(),
@@ -34,7 +38,10 @@ public sealed class AtlasCommandDispatcherTests
     public async Task DispatchAsync_Should_Return_Handler_Result()
     {
         var handler = new TestCommandHandler();
-        var dispatcher = new AtlasCommandDispatcher([handler]);
+
+        var dispatcher =
+            new AtlasCommandDispatcher(
+                new TestServiceProvider(handler));
 
         var result = await dispatcher.DispatchAsync<TestCommand, string>(
             new TestCommand(),
@@ -51,7 +58,11 @@ public sealed class AtlasCommandDispatcherTests
     public async Task DispatchAsync_Should_Pass_CancellationToken_To_Handler()
     {
         var handler = new TestCommandHandler();
-        var dispatcher = new AtlasCommandDispatcher([handler]);
+
+        var dispatcher =
+            new AtlasCommandDispatcher(
+                new TestServiceProvider(handler));
+        
         using var cancellationTokenSource = new CancellationTokenSource();
 
         await dispatcher.DispatchAsync<TestCommand, string>(
@@ -65,12 +76,14 @@ public sealed class AtlasCommandDispatcherTests
 
     /// <summary>
     /// Verifies that <see cref="AtlasCommandDispatcher.DispatchAsync{TCommand, TResult}"/>
-    /// throws when no handler is registered for the command type.
+    /// throws when the requested command handler is not registered with dependency injection.
     /// </summary>
     [Fact]
-    public async Task DispatchAsync_Should_Throw_When_No_Handler_Is_Registered()
+    public async Task DispatchAsync_Should_Throw_When_Handler_Is_Not_Registered()
     {
-        var dispatcher = new AtlasCommandDispatcher([]);
+        var dispatcher =
+            new AtlasCommandDispatcher(
+                new TestServiceProvider(null));
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => dispatcher.DispatchAsync<TestCommand, string>(
@@ -84,13 +97,16 @@ public sealed class AtlasCommandDispatcherTests
 
     /// <summary>
     /// Verifies that <see cref="AtlasCommandDispatcher.DispatchAsync{TCommand, TResult}"/>
-    /// throws when the registered handler produces a different result type.
+    /// throws when the requested result type is not registered.
     /// </summary>
     [Fact]
-    public async Task DispatchAsync_Should_Throw_When_Result_Type_Does_Not_Match()
+    public async Task DispatchAsync_Should_Throw_When_HandlerForRequestedResultType_Is_NotRegistered()
     {
         var handler = new TestCommandHandler();
-        var dispatcher = new AtlasCommandDispatcher([handler]);
+
+        var dispatcher =
+            new AtlasCommandDispatcher(
+                new TestServiceProvider(handler));
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => dispatcher.DispatchAsync<TestCommand, int>(
@@ -98,7 +114,7 @@ public sealed class AtlasCommandDispatcherTests
                 TestContext.Current.CancellationToken));
 
         Assert.Contains(
-            "does not produce the expected result type",
+            "No handler registered for command type",
             exception.Message);
     }
 
@@ -119,6 +135,22 @@ public sealed class AtlasCommandDispatcherTests
             ReceivedCancellationToken = cancellationToken;
 
             return Task.FromResult("Test result");
+        }
+    }
+
+    private sealed class TestServiceProvider(
+        IAtlasCommandHandler<TestCommand, string>? handler)
+        : IServiceProvider
+    {
+        public object? GetService(Type serviceType)
+        {
+            if (serviceType ==
+                typeof(IAtlasCommandHandler<TestCommand, string>))
+            {
+                return handler;
+            }
+
+            return null;
         }
     }
 }
