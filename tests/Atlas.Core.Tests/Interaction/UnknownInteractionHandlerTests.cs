@@ -1,0 +1,69 @@
+﻿using Atlas.Abstractions.Interaction;
+using Atlas.Core.Interaction;
+using Xunit;
+
+namespace Atlas.Core.Tests.Interaction;
+
+/// <summary>
+/// Provides unit tests for the <see cref="UnknownInteractionHandler"/> class.
+/// </summary>
+public sealed class UnknownInteractionHandlerTests
+{
+    /// <summary>
+    /// Verifies that the handler represents the unknown intent.
+    /// </summary>
+    [Fact]
+    public void Intent_Should_ReturnUnknown()
+    {
+        var handler = new UnknownInteractionHandler();
+
+        Assert.Equal(
+            AtlasInteractionIntent.Unknown,
+            handler.Intent);
+    }
+
+    /// <summary>
+    /// Verifies that the handler returns the existing fallback response.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_Should_ReturnFallbackResponse()
+    {
+        var handler = new UnknownInteractionHandler();
+
+        var interaction = new AtlasInteraction
+        {
+            Input = "Hello Atlas"
+        };
+
+        var response = await handler.HandleAsync(
+            interaction,
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            "Atlas received: Hello Atlas",
+            response.Content);
+    }
+
+    /// <summary>
+    /// Verifies that the handler respects cancellation.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_Should_Throw_WhenCancellationRequested()
+    {
+        var handler = new UnknownInteractionHandler();
+
+        var interaction = new AtlasInteraction
+        {
+            Input = "Hello Atlas"
+        };
+
+        using var cancellationTokenSource = new CancellationTokenSource();
+
+        await cancellationTokenSource.CancelAsync();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => handler.HandleAsync(
+                interaction,
+                cancellationTokenSource.Token));
+    }
+}
