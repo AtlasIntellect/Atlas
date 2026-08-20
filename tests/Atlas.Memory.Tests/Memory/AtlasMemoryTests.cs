@@ -284,6 +284,119 @@ public sealed class AtlasMemoryTests
                 cancellationTokenSource.Token));
     }
 
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.SearchAsync"/> matches memories
+    /// containing all terms in a multi-word query.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_MatchAllTermsInQuery()
+    {
+        var memory = new AtlasMemory();
+
+        var matchingEntry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon camera recently",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        var partialMatchEntry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon camera",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        await memory.StoreAsync(
+            matchingEntry,
+            TestContext.Current.CancellationToken);
+
+        await memory.StoreAsync(
+            partialMatchEntry,
+            TestContext.Current.CancellationToken);
+
+        var result = await memory.SearchAsync(
+            "camera recently",
+            TestContext.Current.CancellationToken);
+
+        var entry = Assert.Single(result);
+
+        Assert.Equal(
+            matchingEntry,
+            entry);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.SearchAsync"/> ignores repeated
+    /// whitespace when processing a multi-word query.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_IgnoreRepeatedWhitespaceInQuery()
+    {
+        var memory = new AtlasMemory();
+
+        var entry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon camera recently",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        await memory.StoreAsync(
+            entry,
+            TestContext.Current.CancellationToken);
+
+        var result = await memory.SearchAsync(
+            "camera    recently",
+            TestContext.Current.CancellationToken);
+
+        var matchedEntry = Assert.Single(result);
+
+        Assert.Equal(
+            entry,
+            matchedEntry);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.SearchAsync"/> returns matching
+    /// memories with the most recently created memory first.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_ReturnNewestMemoriesFirst()
+    {
+        var memory = new AtlasMemory();
+
+        var olderEntry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon camera",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
+        };
+
+        var newerEntry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I still have my Canon camera",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        await memory.StoreAsync(
+            olderEntry,
+            TestContext.Current.CancellationToken);
+
+        await memory.StoreAsync(
+            newerEntry,
+            TestContext.Current.CancellationToken);
+
+        var result = await memory.SearchAsync(
+            "Canon camera",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            [newerEntry, olderEntry],
+            result);
+    }
+
     private static AtlasMemoryEntry CreateMemory()
     {
         return new AtlasMemoryEntry

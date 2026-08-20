@@ -43,11 +43,17 @@ public sealed class AtlasMemory : IAtlasMemory
         if (string.IsNullOrWhiteSpace(query))
             return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
 
+        var terms = query.Split(
+            (char[]?)null,
+            StringSplitOptions.RemoveEmptyEntries);
+
         var results = _memories.Values
             .Where(memory =>
-                memory.Content.Contains(
-                    query,
-                    StringComparison.OrdinalIgnoreCase))
+                terms.All(term =>
+                    memory.Content.Contains(
+                        term,
+                        StringComparison.OrdinalIgnoreCase)))
+            .OrderByDescending(memory => memory.CreatedAt)
             .ToList();
 
         return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>(results);
