@@ -43,19 +43,61 @@ public sealed class AtlasMemory : IAtlasMemory
         if (string.IsNullOrWhiteSpace(query))
             return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
 
-        var terms = query.Split(
-            (char[]?)null,
-            StringSplitOptions.RemoveEmptyEntries);
+        var normalizedQuery = string.Join(
+            ' ',
+            query.Split(
+                (char[]?)null,
+                StringSplitOptions.RemoveEmptyEntries));
 
         var results = _memories.Values
             .Where(memory =>
-                terms.All(term =>
-                    memory.Content.Contains(
-                        term,
-                        StringComparison.OrdinalIgnoreCase)))
-            .OrderByDescending(memory => memory.CreatedAt)
+                memory.Content.Contains(
+                    normalizedQuery,
+                    StringComparison.OrdinalIgnoreCase))
+            .Select(memory => new
+            {
+                Memory = memory,
+                Score = CalculateRelevance(
+                    memory.Content,
+                    normalizedQuery)
+            })
+            .OrderByDescending(result => result.Score)
+            .ThenByDescending(result => result.Memory.CreatedAt)
+            .Select(result => result.Memory)
             .ToList();
 
         return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>(results);
+    }
+
+    private static int CalculateRelevance(
+        string content,
+        string query)
+    {
+        if (string.Equals(
+                content,
+                query,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return int.MaxValue;
+        }
+
+        var count = 0;
+        var startIndex = 0;
+
+        while (true)
+        {
+            var index = content.IndexOf(
+                query,
+                startIndex,
+                StringComparison.OrdinalIgnoreCase);
+
+            if (index < 0)
+                break;
+
+            count++;
+            startIndex = index + query.Length;
+        }
+
+        return count;
     }
 }

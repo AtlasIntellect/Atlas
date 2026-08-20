@@ -60,7 +60,9 @@ public sealed class AtlasCommandIntegrationTests
         var content = "Test memory content";
 
         var entry = await dispatcher.DispatchAsync<StoreMemoryCommand, AtlasMemoryEntry>(
-            new StoreMemoryCommand(content),
+            new StoreMemoryCommand(
+                content,
+                AtlasMemoryType.Fact),
             TestContext.Current.CancellationToken);
 
         Assert.NotNull(entry);
@@ -93,7 +95,9 @@ public sealed class AtlasCommandIntegrationTests
         var stored = await dispatcher.DispatchAsync<
             StoreMemoryCommand,
             AtlasMemoryEntry>(
-            new StoreMemoryCommand("Integration test memory"),
+            new StoreMemoryCommand(
+                "Integration test memory",
+                AtlasMemoryType.Fact),
             TestContext.Current.CancellationToken);
 
         var retrieved = await dispatcher.DispatchAsync<
@@ -132,19 +136,25 @@ public sealed class AtlasCommandIntegrationTests
         var cameraMemory = await dispatcher.DispatchAsync<
             StoreMemoryCommand,
             AtlasMemoryEntry>(
-            new StoreMemoryCommand("I bought a Canon camera"),
+            new StoreMemoryCommand(
+                "I bought a Canon camera",
+                AtlasMemoryType.Fact),
             TestContext.Current.CancellationToken);
 
         var pizzaMemory = await dispatcher.DispatchAsync<
             StoreMemoryCommand,
             AtlasMemoryEntry>(
-            new StoreMemoryCommand("I really like pizza"),
+            new StoreMemoryCommand(
+                "I really like pizza",
+                AtlasMemoryType.Fact),
             TestContext.Current.CancellationToken);
 
         var secondCameraMemory = await dispatcher.DispatchAsync<
             StoreMemoryCommand,
             AtlasMemoryEntry>(
-            new StoreMemoryCommand("My camera uses a CompactFlash card"),
+            new StoreMemoryCommand(
+                "My camera uses a CompactFlash card",
+                AtlasMemoryType.Fact),
             TestContext.Current.CancellationToken);
 
         var results = await dispatcher.DispatchAsync<

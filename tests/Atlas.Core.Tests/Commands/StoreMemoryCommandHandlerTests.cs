@@ -19,7 +19,9 @@ public sealed class StoreMemoryCommandHandlerTests
         var memory = new TestMemory();
         var handler = new StoreMemoryCommandHandler(memory);
 
-        var command = new StoreMemoryCommand("Test memory");
+        var command = new StoreMemoryCommand(
+            "Test memory",
+            AtlasMemoryType.Fact);
 
         var result = await handler.HandleAsync(
             command,
@@ -43,7 +45,9 @@ public sealed class StoreMemoryCommandHandlerTests
         using var cancellationTokenSource = new CancellationTokenSource();
 
         await handler.HandleAsync(
-            new StoreMemoryCommand("Test memory"),
+            new StoreMemoryCommand(
+                "Test memory",
+                AtlasMemoryType.Fact),
             cancellationTokenSource.Token);
 
         Assert.Equal(
@@ -69,7 +73,9 @@ public sealed class StoreMemoryCommandHandlerTests
 
         await Assert.ThrowsAsync<OperationCanceledException>(
             () => handler.HandleAsync(
-                new StoreMemoryCommand("Test memory"),
+                new StoreMemoryCommand(
+                    "Test memory",
+                    AtlasMemoryType.Fact),
                 cancellationTokenSource.Token));
     }
 

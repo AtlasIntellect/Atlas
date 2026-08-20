@@ -20,9 +20,21 @@ public sealed class StoreMemoryInteractionHandlerTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
+        var contentExtractor = new TestContentExtractor
+        {
+            Content = "I bought a Canon EOS 350D camera."
+        };
+
+        var typeClassifier = new TestMemoryTypeClassifier
+        {
+            Type = AtlasMemoryType.Fact
+        };
+
         var handler =
             new StoreMemoryInteractionHandler(
-                commandDispatcher);
+                commandDispatcher,
+                contentExtractor,
+                typeClassifier);
 
         Assert.Equal(
             AtlasInteractionIntent.StoreMemory,
@@ -37,9 +49,21 @@ public sealed class StoreMemoryInteractionHandlerTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
+        var contentExtractor = new TestContentExtractor
+        {
+            Content = "I bought a Canon EOS 350D camera."
+        };
+
+        var typeClassifier = new TestMemoryTypeClassifier
+        {
+            Type = AtlasMemoryType.Fact
+        };
+
         var handler =
             new StoreMemoryInteractionHandler(
-                commandDispatcher);
+                commandDispatcher,
+                contentExtractor,
+                typeClassifier);
 
         var interaction = new AtlasInteraction
         {
@@ -55,7 +79,7 @@ public sealed class StoreMemoryInteractionHandlerTests
                 commandDispatcher.ReceivedCommand);
 
         Assert.Equal(
-            interaction.Input,
+            contentExtractor.Content,
             command.Content);
     }
 
@@ -67,9 +91,21 @@ public sealed class StoreMemoryInteractionHandlerTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
+        var contentExtractor = new TestContentExtractor
+        {
+            Content = "I bought a Canon EOS 350D camera."
+        };
+
+        var typeClassifier = new TestMemoryTypeClassifier
+        {
+            Type = AtlasMemoryType.Fact
+        };
+
         var handler =
             new StoreMemoryInteractionHandler(
-                commandDispatcher);
+                commandDispatcher,
+                contentExtractor,
+                typeClassifier);
 
         var interaction = new AtlasInteraction
         {
@@ -93,9 +129,21 @@ public sealed class StoreMemoryInteractionHandlerTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
+        var contentExtractor = new TestContentExtractor
+        {
+            Content = "I bought a Canon EOS 350D camera."
+        };
+
+        var typeClassifier = new TestMemoryTypeClassifier
+        {
+            Type = AtlasMemoryType.Fact
+        };
+
         var handler =
             new StoreMemoryInteractionHandler(
-                commandDispatcher);
+                commandDispatcher,
+                contentExtractor,
+                typeClassifier);
 
         using var cancellationTokenSource = new CancellationTokenSource();
 
@@ -143,6 +191,29 @@ public sealed class StoreMemoryInteractionHandlerTests
 
             throw new InvalidOperationException(
                 $"Unexpected command type: {typeof(TCommand).FullName}");
+        }
+    }
+
+    private sealed class TestContentExtractor
+        : IAtlasInteractionMemoryContentExtractor
+    {
+        public string Content { get; init; } = string.Empty;
+
+        public string ExtractContent(
+            AtlasInteraction interaction)
+        {
+            return Content;
+        }
+    }
+
+    private sealed class TestMemoryTypeClassifier
+        : IAtlasMemoryTypeClassifier
+    {
+        public AtlasMemoryType Type { get; init; }
+
+        public AtlasMemoryType Classify(string content)
+        {
+            return Type;
         }
     }
 }

@@ -7,6 +7,7 @@ using Atlas.Abstractions.Runtime;
 using Atlas.Core.Commands;
 using Atlas.Core.Events;
 using Atlas.Core.Interaction;
+using Atlas.Core.Memory;
 using Atlas.Core.Runtime;
 using Atlas.Hosting.Runtime;
 using Atlas.Hosting.Startup;
@@ -81,7 +82,9 @@ public static class AtlasServiceCollectionExtensions
                 provider =>
                     provider.GetRequiredService<ProcessInteractionCommandHandler>())
             .AddSingleton<IAtlasInteractionQueryExtractor, AtlasInteractionQueryExtractor>()
+            .AddSingleton<IAtlasInteractionMemoryContentExtractor, AtlasInteractionMemoryContentExtractor>()
             .AddSingleton<IAtlasMemorySearchResponseFormatter, AtlasMemorySearchResponseFormatter>()
+            .AddSingleton<IAtlasMemoryTypeClassifier, AtlasMemoryTypeClassifier>()
             .AddSingleton<IAtlasRuntime, AtlasRuntime>()
             .AddSingleton<IAtlasApplicationContext, AtlasApplicationContext>()
             .AddSingleton<IAtlasEventHandlerBase, StartupHandler>()

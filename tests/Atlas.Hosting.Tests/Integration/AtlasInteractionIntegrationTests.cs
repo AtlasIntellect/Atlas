@@ -208,7 +208,7 @@ public sealed class AtlasInteractionIntegrationTests
             TestContext.Current.CancellationToken);
 
         Assert.Equal(
-            "Remember that I bought a Canon EOS 350D camera.",
+            "I bought a Canon EOS 350D camera.",
             response.Content);
     }
 }

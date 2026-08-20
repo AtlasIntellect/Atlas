@@ -19,4 +19,9 @@ public sealed class AtlasMemoryEntry
     /// Gets the timestamp when the memory was created.
     /// </summary>
     public required DateTimeOffset CreatedAt { get; init; }
+
+    /// <summary>
+    /// Gets the type of the memory.
+    /// </summary>
+    public AtlasMemoryType Type { get; init; } = AtlasMemoryType.Fact;
 }

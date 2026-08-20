@@ -397,6 +397,137 @@ public sealed class AtlasMemoryTests
             result);
     }
 
+    /// <summary>
+    /// Verifies that an exact content match is ranked before partial matches.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_RankExactMatchFirst()
+    {
+        var memory = new AtlasMemory();
+
+        var partialMatch = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon camera.",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        var exactMatch = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "camera",
+            CreatedAt = DateTimeOffset.UtcNow.AddSeconds(1)
+        };
+
+        await memory.StoreAsync(
+            partialMatch,
+            TestContext.Current.CancellationToken);
+
+        await memory.StoreAsync(
+            exactMatch,
+            TestContext.Current.CancellationToken);
+
+        var result = await memory.SearchAsync(
+            "camera",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            exactMatch,
+            result[0]);
+
+        Assert.Equal(
+            partialMatch,
+            result[1]);
+    }
+
+    /// <summary>
+    /// Verifies that memories containing the query more frequently are ranked higher.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_RankMoreRelevantMemoryFirst()
+    {
+        var memory = new AtlasMemory();
+
+        var lessRelevant = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a camera.",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        var moreRelevant = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a camera because I wanted a camera for photography.",
+            CreatedAt = DateTimeOffset.UtcNow.AddSeconds(1)
+        };
+
+        await memory.StoreAsync(
+            lessRelevant,
+            TestContext.Current.CancellationToken);
+
+        await memory.StoreAsync(
+            moreRelevant,
+            TestContext.Current.CancellationToken);
+
+        var result = await memory.SearchAsync(
+            "camera",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            moreRelevant,
+            result[0]);
+
+        Assert.Equal(
+            lessRelevant,
+            result[1]);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="AtlasMemoryEntry.Type"/> property
+    /// defaults to <see cref="AtlasMemoryType.Fact"/>.
+    /// </summary>
+    [Fact]
+    public void Type_Should_DefaultToFact()
+    {
+        var entry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon EOS 350D.",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        Assert.Equal(
+            AtlasMemoryType.Fact,
+            entry.Type);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="AtlasMemoryEntry.Type"/> property supports
+    /// all defined memory types in <see cref="AtlasMemoryType"/>.
+    /// </summary>
+    /// <param name="type">The memory type to test.</param>
+    [Theory]
+    [InlineData(AtlasMemoryType.Fact)]
+    [InlineData(AtlasMemoryType.Preference)]
+    [InlineData(AtlasMemoryType.Task)]
+    [InlineData(AtlasMemoryType.Conversation)]
+    public void Type_Should_SupportAllMemoryTypes(
+        AtlasMemoryType type)
+    {
+        var entry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Test memory",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Type = type
+        };
+
+        Assert.Equal(
+            type,
+            entry.Type);
+    }
+
     private static AtlasMemoryEntry CreateMemory()
     {
         return new AtlasMemoryEntry

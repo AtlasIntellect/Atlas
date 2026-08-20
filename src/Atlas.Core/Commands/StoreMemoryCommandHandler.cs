@@ -20,7 +20,8 @@ public sealed class StoreMemoryCommandHandler(
         {
             Id = Guid.NewGuid(),
             Content = command.Content,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow,
+            Type = command.Type
         };
 
         await memory.StoreAsync(

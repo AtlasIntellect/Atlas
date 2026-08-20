@@ -9,7 +9,9 @@ namespace Atlas.Core.Interaction;
 /// Handles interactions that request storing a memory.
 /// </summary>
 public sealed class StoreMemoryInteractionHandler(
-    IAtlasCommandDispatcher commandDispatcher)
+    IAtlasCommandDispatcher commandDispatcher,
+    IAtlasInteractionMemoryContentExtractor contentExtractor,
+    IAtlasMemoryTypeClassifier typeClassifier)
     : IAtlasInteractionHandler
 {
     /// <inheritdoc/>
@@ -23,10 +25,18 @@ public sealed class StoreMemoryInteractionHandler(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        var content =
+            contentExtractor.ExtractContent(interaction);
+
+        var type =
+            typeClassifier.Classify(content);
+
         await commandDispatcher.DispatchAsync<
             StoreMemoryCommand,
             AtlasMemoryEntry>(
-            new StoreMemoryCommand(interaction.Input),
+            new StoreMemoryCommand(
+                content,
+                type),
             cancellationToken);
 
         return new AtlasResponse
