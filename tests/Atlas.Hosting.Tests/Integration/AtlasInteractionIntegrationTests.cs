@@ -170,4 +170,45 @@ public sealed class AtlasInteractionIntegrationTests
             handlers,
             handler => handler.Intent == AtlasInteractionIntent.Unknown);
     }
+
+    /// <summary>
+    /// Verifies that Atlas can store a memory and subsequently retrieve it
+    /// through a natural-language interaction using the complete dependency
+    /// injection pipeline.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_Should_StoreAndRetrieveMemoryThroughFullPipeline()
+    {
+        var services = new ServiceCollection();
+
+        services.AddAtlas();
+
+        await using var serviceProvider =
+            services.BuildServiceProvider();
+
+        var processor =
+            serviceProvider.GetRequiredService<IAtlasInteractionProcessor>();
+
+        var storeInteraction = new AtlasInteraction
+        {
+            Input = "Remember that I bought a Canon EOS 350D camera."
+        };
+
+        await processor.ProcessAsync(
+            storeInteraction,
+            TestContext.Current.CancellationToken);
+
+        var searchInteraction = new AtlasInteraction
+        {
+            Input = "What camera did I buy?"
+        };
+
+        var response = await processor.ProcessAsync(
+            searchInteraction,
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            "Remember that I bought a Canon EOS 350D camera.",
+            response.Content);
+    }
 }

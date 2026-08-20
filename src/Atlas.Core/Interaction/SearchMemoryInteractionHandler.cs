@@ -10,7 +10,8 @@ namespace Atlas.Core.Interaction;
 /// </summary>
 public sealed class SearchMemoryInteractionHandler(
     IAtlasCommandDispatcher commandDispatcher,
-    IAtlasInteractionQueryExtractor queryExtractor)
+    IAtlasInteractionQueryExtractor queryExtractor,
+    IAtlasMemorySearchResponseFormatter responseFormatter)
     : IAtlasInteractionHandler
 {
     /// <inheritdoc/>
@@ -34,19 +35,6 @@ public sealed class SearchMemoryInteractionHandler(
                 new SearchMemoryCommand(query),
                 cancellationToken);
 
-        if (memories.Count == 0)
-        {
-            return new AtlasResponse
-            {
-                Content = "I couldn't find any matching memories."
-            };
-        }
-
-        return new AtlasResponse
-        {
-            Content = string.Join(
-                Environment.NewLine,
-                memories.Select(memory => memory.Content))
-        };
+        return responseFormatter.Format(memories);
     }
 }

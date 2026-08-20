@@ -21,10 +21,13 @@ public sealed class SearchMemoryInteractionHandlerTests
         var commandDispatcher = new TestCommandDispatcher();
         var queryExtractor = new TestQueryExtractor();
 
+        var responseFormatter = new TestResponseFormatter();
+
         var handler =
             new SearchMemoryInteractionHandler(
                 commandDispatcher,
-                queryExtractor);
+                queryExtractor,
+                responseFormatter);
 
         Assert.Equal(
             AtlasInteractionIntent.SearchMemory,
@@ -43,10 +46,13 @@ public sealed class SearchMemoryInteractionHandlerTests
             Query = "camera"
         };
 
+        var responseFormatter = new TestResponseFormatter();
+
         var handler =
             new SearchMemoryInteractionHandler(
                 commandDispatcher,
-                queryExtractor);
+                queryExtractor,
+                responseFormatter);
 
         var interaction = new AtlasInteraction
         {
@@ -89,10 +95,13 @@ public sealed class SearchMemoryInteractionHandlerTests
             Query = "camera"
         };
 
+        var responseFormatter = new TestResponseFormatter();
+
         var handler =
             new SearchMemoryInteractionHandler(
                 commandDispatcher,
-                queryExtractor);
+                queryExtractor,
+                responseFormatter);
 
         var interaction = new AtlasInteraction
         {
@@ -103,9 +112,9 @@ public sealed class SearchMemoryInteractionHandlerTests
             interaction,
             TestContext.Current.CancellationToken);
 
-        Assert.Contains(
-            memory.Content,
-            response.Content);
+        Assert.Same(
+            responseFormatter.Response,
+            response);
     }
 
     /// <summary>
@@ -120,10 +129,13 @@ public sealed class SearchMemoryInteractionHandlerTests
             Query = "camera"
         };
 
+        var responseFormatter = new TestResponseFormatter();
+
         var handler =
             new SearchMemoryInteractionHandler(
                 commandDispatcher,
-                queryExtractor);
+                queryExtractor,
+                responseFormatter);
 
         var interaction = new AtlasInteraction
         {
@@ -134,9 +146,9 @@ public sealed class SearchMemoryInteractionHandlerTests
             interaction,
             TestContext.Current.CancellationToken);
 
-        Assert.Equal(
-            "I couldn't find any matching memories.",
-            response.Content);
+        Assert.Same(
+            responseFormatter.Response,
+            response);
     }
 
     /// <summary>
@@ -151,10 +163,13 @@ public sealed class SearchMemoryInteractionHandlerTests
             Query = "camera"
         };
 
+        var responseFormatter = new TestResponseFormatter();
+
         var handler =
             new SearchMemoryInteractionHandler(
                 commandDispatcher,
-                queryExtractor);
+                queryExtractor,
+                responseFormatter);
 
         using var cancellationTokenSource = new CancellationTokenSource();
 
@@ -205,6 +220,50 @@ public sealed class SearchMemoryInteractionHandlerTests
         }
     }
 
+    /// <summary>
+    /// Verifies that the handler formats search results using the response formatter.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_Should_FormatSearchResults()
+    {
+        var memory = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon EOS 350D camera.",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        var commandDispatcher = new TestCommandDispatcher
+        {
+            SearchResults = [memory]
+        };
+
+        var queryExtractor = new TestQueryExtractor();
+
+        var responseFormatter = new TestResponseFormatter();
+
+        var handler =
+            new SearchMemoryInteractionHandler(
+                commandDispatcher,
+                queryExtractor,
+                responseFormatter);
+
+        var response = await handler.HandleAsync(
+            new AtlasInteraction
+            {
+                Input = "What camera do I have?"
+            },
+            TestContext.Current.CancellationToken);
+
+        Assert.Same(
+            responseFormatter.Response,
+            response);
+
+        Assert.Equal(
+            [memory],
+            responseFormatter.ReceivedMemories);
+    }
+
     private sealed class TestQueryExtractor : IAtlasInteractionQueryExtractor
     {
         public string Query { get; init; } = "camera";
@@ -212,6 +271,25 @@ public sealed class SearchMemoryInteractionHandlerTests
         public string ExtractQuery(AtlasInteraction interaction)
         {
             return Query;
+        }
+    }
+
+    private sealed class TestResponseFormatter
+        : IAtlasMemorySearchResponseFormatter
+    {
+        public IReadOnlyList<AtlasMemoryEntry>? ReceivedMemories { get; private set; }
+
+        public AtlasResponse Response { get; init; } = new()
+        {
+            Content = "Formatted response"
+        };
+
+        public AtlasResponse Format(
+            IReadOnlyList<AtlasMemoryEntry> memories)
+        {
+            ReceivedMemories = memories;
+
+            return Response;
         }
     }
 }
