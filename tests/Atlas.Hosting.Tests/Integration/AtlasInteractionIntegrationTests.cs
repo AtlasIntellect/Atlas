@@ -211,4 +211,94 @@ public sealed class AtlasInteractionIntegrationTests
             "I bought a Canon EOS 350D camera.",
             response.Content);
     }
+
+    /// <summary>
+    /// Verifies that a classified memory retains its type through the
+    /// complete dependency injection pipeline.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_Should_PreserveMemoryTypeThroughFullPipeline()
+    {
+        var services = new ServiceCollection();
+
+        services.AddAtlas();
+
+        await using var serviceProvider =
+            services.BuildServiceProvider();
+
+        var processor =
+            serviceProvider.GetRequiredService<IAtlasInteractionProcessor>();
+
+        var interaction = new AtlasInteraction
+        {
+            Input = "Remember that my favorite color is blue."
+        };
+
+        await processor.ProcessAsync(
+            interaction,
+            TestContext.Current.CancellationToken);
+
+        var memory =
+            serviceProvider
+                .GetRequiredService<IAtlasMemory>();
+
+        var results = await memory.SearchAsync(
+            "favorite color",
+            TestContext.Current.CancellationToken);
+
+        var entry = Assert.Single(results);
+
+        Assert.Equal(
+            "my favorite color is blue.",
+            entry.Content);
+
+        Assert.Equal(
+            AtlasMemoryType.Preference,
+            entry.Type);
+    }
+
+    /// <summary>
+    /// Verifies that a classified task retains its type through the
+    /// complete dependency injection pipeline.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_Should_PreserveTaskTypeThroughFullPipeline()
+    {
+        var services = new ServiceCollection();
+
+        services.AddAtlas();
+
+        await using var serviceProvider =
+            services.BuildServiceProvider();
+
+        var processor =
+            serviceProvider.GetRequiredService<IAtlasInteractionProcessor>();
+
+        var interaction = new AtlasInteraction
+        {
+            Input = "Remember that I need to buy milk."
+        };
+
+        await processor.ProcessAsync(
+            interaction,
+            TestContext.Current.CancellationToken);
+
+        var memory =
+            serviceProvider
+                .GetRequiredService<IAtlasMemory>();
+
+        var results = await memory.SearchAsync(
+            "buy milk",
+            TestContext.Current.CancellationToken);
+
+        var entry = Assert.Single(results);
+
+        Assert.Equal(
+            "I need to buy milk.",
+            entry.Content);
+
+        Assert.Equal(
+            AtlasMemoryType.Task,
+            entry.Type);
+    }
 }

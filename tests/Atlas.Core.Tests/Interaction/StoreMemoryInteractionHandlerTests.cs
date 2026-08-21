@@ -164,6 +164,96 @@ public sealed class StoreMemoryInteractionHandlerTests
             commandDispatcher.ReceivedCancellationToken);
     }
 
+    /// <summary>
+    /// Verifies that the handler includes the classified memory type
+    /// in the store command.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_Should_DispatchClassifiedMemoryType()
+    {
+        var commandDispatcher = new TestCommandDispatcher();
+
+        var contentExtractor = new TestContentExtractor
+        {
+            Content = "My favorite color is blue."
+        };
+
+        var typeClassifier = new TestMemoryTypeClassifier
+        {
+            Type = AtlasMemoryType.Preference
+        };
+
+        var handler =
+            new StoreMemoryInteractionHandler(
+                commandDispatcher,
+                contentExtractor,
+                typeClassifier);
+
+        await handler.HandleAsync(
+            new AtlasInteraction
+            {
+                Input = "Remember that my favorite color is blue."
+            },
+            TestContext.Current.CancellationToken);
+
+        var command =
+            Assert.IsType<StoreMemoryCommand>(
+                commandDispatcher.ReceivedCommand);
+
+        Assert.Equal(
+            "My favorite color is blue.",
+            command.Content);
+
+        Assert.Equal(
+            AtlasMemoryType.Preference,
+            command.Type);
+    }
+
+    /// <summary>
+    /// Verifies that the handler includes the classified task type
+    /// in the store command.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_Should_DispatchClassifiedTaskType()
+    {
+        var commandDispatcher = new TestCommandDispatcher();
+
+        var contentExtractor = new TestContentExtractor
+        {
+            Content = "Buy milk."
+        };
+
+        var typeClassifier = new TestMemoryTypeClassifier
+        {
+            Type = AtlasMemoryType.Task
+        };
+
+        var handler =
+            new StoreMemoryInteractionHandler(
+                commandDispatcher,
+                contentExtractor,
+                typeClassifier);
+
+        await handler.HandleAsync(
+            new AtlasInteraction
+            {
+                Input = "Remind me to buy milk."
+            },
+            TestContext.Current.CancellationToken);
+
+        var command =
+            Assert.IsType<StoreMemoryCommand>(
+                commandDispatcher.ReceivedCommand);
+
+        Assert.Equal(
+            "Buy milk.",
+            command.Content);
+
+        Assert.Equal(
+            AtlasMemoryType.Task,
+            command.Type);
+    }
+
     private sealed class TestCommandDispatcher : IAtlasCommandDispatcher
     {
         public IAtlasCommand? ReceivedCommand { get; private set; }
