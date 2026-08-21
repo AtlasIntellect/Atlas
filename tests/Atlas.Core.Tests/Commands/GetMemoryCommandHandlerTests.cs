@@ -176,5 +176,14 @@ public sealed class GetMemoryCommandHandlerTests
 
             return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
         }
+
+        public Task<IReadOnlyList<AtlasMemoryEntry>> SearchAsync(
+            AtlasMemoryQuery query,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
+        }
     }
 }

@@ -159,5 +159,14 @@ public sealed class SearchMemoryCommandHandlerTests
                 throw new OperationCanceledException(cancellationToken)
                 : Task.FromResult(Entries);
         }
+
+        public Task<IReadOnlyList<AtlasMemoryEntry>> SearchAsync(
+            AtlasMemoryQuery query,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
+        }
     }
 }

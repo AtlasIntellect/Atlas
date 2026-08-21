@@ -264,12 +264,75 @@ public sealed class SearchMemoryInteractionHandlerTests
             responseFormatter.ReceivedMemories);
     }
 
+    /// <summary>
+    /// Verifies that the handler throws when cancellation has already been requested.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_Should_Throw_WhenCancellationRequested()
+    {
+        var commandDispatcher = new TestCommandDispatcher();
+        var queryExtractor = new TestQueryExtractor();
+        var responseFormatter = new TestResponseFormatter();
+
+        var handler =
+            new SearchMemoryInteractionHandler(
+                commandDispatcher,
+                queryExtractor,
+                responseFormatter);
+
+        using var cancellationTokenSource = new CancellationTokenSource();
+
+        await cancellationTokenSource.CancelAsync();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => handler.HandleAsync(
+                new AtlasInteraction
+                {
+                    Input = "What camera do I have?"
+                },
+                cancellationTokenSource.Token));
+    }
+
+    /// <summary>
+    /// Verifies that the handler passes the interaction to the query extractor.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_Should_PassInteraction_ToQueryExtractor()
+    {
+        var commandDispatcher = new TestCommandDispatcher();
+        var queryExtractor = new TestQueryExtractor();
+        var responseFormatter = new TestResponseFormatter();
+
+        var handler =
+            new SearchMemoryInteractionHandler(
+                commandDispatcher,
+                queryExtractor,
+                responseFormatter);
+
+        var interaction = new AtlasInteraction
+        {
+            Input = "What camera do I have?"
+        };
+
+        await handler.HandleAsync(
+            interaction,
+            TestContext.Current.CancellationToken);
+
+        Assert.Same(
+            interaction,
+            queryExtractor.ReceivedInteraction);
+    }
+
     private sealed class TestQueryExtractor : IAtlasInteractionQueryExtractor
     {
         public string Query { get; init; } = "camera";
 
+        public AtlasInteraction? ReceivedInteraction { get; private set; }
+
         public string ExtractQuery(AtlasInteraction interaction)
         {
+            ReceivedInteraction = interaction;
+
             return Query;
         }
     }

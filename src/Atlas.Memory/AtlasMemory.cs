@@ -43,23 +43,30 @@ public sealed class AtlasMemory : IAtlasMemory
         if (string.IsNullOrWhiteSpace(query))
             return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
 
-        var normalizedQuery = string.Join(
-            ' ',
-            query.Split(
+        var terms = query
+            .Split(
                 (char[]?)null,
-                StringSplitOptions.RemoveEmptyEntries));
+                StringSplitOptions.RemoveEmptyEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (terms.Length == 0)
+        {
+            return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
+        }
 
         var results = _memories.Values
             .Where(memory =>
-                memory.Content.Contains(
-                    normalizedQuery,
-                    StringComparison.OrdinalIgnoreCase))
+                terms.All(term =>
+                    memory.Content.Contains(
+                        term,
+                        StringComparison.OrdinalIgnoreCase)))
             .Select(memory => new
             {
                 Memory = memory,
                 Score = CalculateRelevance(
                     memory.Content,
-                    normalizedQuery)
+                    terms)
             })
             .OrderByDescending(result => result.Score)
             .ThenByDescending(result => result.Memory.CreatedAt)
@@ -69,25 +76,90 @@ public sealed class AtlasMemory : IAtlasMemory
         return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>(results);
     }
 
-    private static int CalculateRelevance(
-        string content,
-        string query)
+    /// <inheritdoc/>
+    public Task<IReadOnlyList<AtlasMemoryEntry>> SearchAsync(
+        AtlasMemoryQuery query,
+        CancellationToken cancellationToken = default)
     {
-        if (string.Equals(
-                content,
-                query,
-                StringComparison.OrdinalIgnoreCase))
+        ArgumentNullException.ThrowIfNull(query);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var memories = _memories.Values.AsEnumerable();
+
+        if (query.Type is not null)
         {
-            return int.MaxValue;
+            memories = memories.Where(
+                memory => memory.Type == query.Type);
         }
 
+        if (!string.IsNullOrWhiteSpace(query.Text))
+        {
+            var terms = query.Text
+                .Split(
+                    (char[]?)null,
+                    StringSplitOptions.RemoveEmptyEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (terms.Length == 0)
+            {
+                return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
+            }
+
+            memories = memories
+                .Where(memory =>
+                    terms.All(term =>
+                        memory.Content.Contains(
+                            term,
+                            StringComparison.OrdinalIgnoreCase)))
+                .Select(memory => new
+                {
+                    Memory = memory,
+                    Score = CalculateRelevance(
+                        memory.Content,
+                        terms)
+                })
+                .OrderByDescending(result => result.Score)
+                .ThenByDescending(result => result.Memory.CreatedAt)
+                .Select(result => result.Memory);
+        }
+        else
+        {
+            memories = memories
+                .OrderByDescending(
+                    memory => memory.CreatedAt);
+        }
+
+        return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>(
+            [.. memories]);
+    }
+
+    private static int CalculateRelevance(
+        string content,
+        IReadOnlyList<string> terms)
+    {
+        var score = 0;
+
+        foreach (var term in terms)
+        {
+            score += CountOccurrences(content, term);
+        }
+
+        return score;
+    }
+
+    private static int CountOccurrences(
+        string content,
+        string term)
+    {
         var count = 0;
         var startIndex = 0;
 
         while (true)
         {
             var index = content.IndexOf(
-                query,
+                term,
                 startIndex,
                 StringComparison.OrdinalIgnoreCase);
 
@@ -95,7 +167,7 @@ public sealed class AtlasMemory : IAtlasMemory
                 break;
 
             count++;
-            startIndex = index + query.Length;
+            startIndex = index + term.Length;
         }
 
         return count;
