@@ -23,7 +23,7 @@
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageVersion Include="xunit.analyzers" Version="1.27.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="xunit.v3" Version="4.0.0" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.31.0.145097" />
