@@ -30,11 +30,14 @@ public sealed class StoreMemoryInteractionHandlerTests
             Type = AtlasMemoryType.Fact
         };
 
+        var interpreter = new TestMemoryInterpreter();
+
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
                 contentExtractor,
-                typeClassifier);
+                typeClassifier,
+                interpreter);
 
         Assert.Equal(
             AtlasInteractionIntent.StoreMemory,
@@ -59,11 +62,14 @@ public sealed class StoreMemoryInteractionHandlerTests
             Type = AtlasMemoryType.Fact
         };
 
+        var interpreter = new TestMemoryInterpreter();
+
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
                 contentExtractor,
-                typeClassifier);
+                typeClassifier,
+                interpreter);
 
         var interaction = new AtlasInteraction
         {
@@ -101,11 +107,14 @@ public sealed class StoreMemoryInteractionHandlerTests
             Type = AtlasMemoryType.Fact
         };
 
+        var interpreter = new TestMemoryInterpreter();
+
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
                 contentExtractor,
-                typeClassifier);
+                typeClassifier,
+                interpreter);
 
         var interaction = new AtlasInteraction
         {
@@ -139,11 +148,14 @@ public sealed class StoreMemoryInteractionHandlerTests
             Type = AtlasMemoryType.Fact
         };
 
+        var interpreter = new TestMemoryInterpreter();
+
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
                 contentExtractor,
-                typeClassifier);
+                typeClassifier,
+                interpreter);
 
         using var cancellationTokenSource = new CancellationTokenSource();
 
@@ -183,11 +195,14 @@ public sealed class StoreMemoryInteractionHandlerTests
             Type = AtlasMemoryType.Preference
         };
 
+        var interpreter = new TestMemoryInterpreter();
+
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
                 contentExtractor,
-                typeClassifier);
+                typeClassifier,
+                interpreter);
 
         await handler.HandleAsync(
             new AtlasInteraction
@@ -211,10 +226,10 @@ public sealed class StoreMemoryInteractionHandlerTests
 
     /// <summary>
     /// Verifies that the handler includes the classified task type
-    /// in the store command.
+    /// and interpreted task data in the store command.
     /// </summary>
     [Fact]
-    public async Task HandleAsync_Should_DispatchClassifiedTaskType()
+    public async Task HandleAsync_Should_DispatchInterpretedTaskData()
     {
         var commandDispatcher = new TestCommandDispatcher();
 
@@ -228,11 +243,20 @@ public sealed class StoreMemoryInteractionHandlerTests
             Type = AtlasMemoryType.Task
         };
 
+        var interpreter = new TestMemoryInterpreter
+        {
+            Data = new AtlasTaskData
+            {
+                Description = "Buy milk."
+            }
+        };
+
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
                 contentExtractor,
-                typeClassifier);
+                typeClassifier,
+                interpreter);
 
         await handler.HandleAsync(
             new AtlasInteraction
@@ -252,6 +276,67 @@ public sealed class StoreMemoryInteractionHandlerTests
         Assert.Equal(
             AtlasMemoryType.Task,
             command.Type);
+
+        var taskData =
+            Assert.IsType<AtlasTaskData>(
+                command.Data);
+
+        Assert.Equal(
+            "Buy milk.",
+            taskData.Description);
+
+        Assert.Equal(
+            AtlasTaskStatus.Active,
+            taskData.Status);
+    }
+
+    /// <summary>
+    /// Verifies that the handler dispatches a command without interpretation
+    /// when the memory interpreter returns no structured data.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_Should_DispatchWithoutInterpretation_WhenInterpreterReturnsNull()
+    {
+        var commandDispatcher = new TestCommandDispatcher();
+
+        var contentExtractor = new TestContentExtractor
+        {
+            Content = "I bought a Canon EOS 350D camera."
+        };
+
+        var typeClassifier = new TestMemoryTypeClassifier
+        {
+            Type = AtlasMemoryType.Fact
+        };
+
+        var interpreter = new TestMemoryInterpreter
+        {
+            Data = null
+        };
+
+        var handler =
+            new StoreMemoryInteractionHandler(
+                commandDispatcher,
+                contentExtractor,
+                typeClassifier,
+                interpreter);
+
+        await handler.HandleAsync(
+            new AtlasInteraction
+            {
+                Input = "Remember that I bought a Canon EOS 350D camera."
+            },
+            TestContext.Current.CancellationToken);
+
+        var command =
+            Assert.IsType<StoreMemoryCommand>(
+                commandDispatcher.ReceivedCommand);
+
+        Assert.Equal(
+            AtlasMemoryType.Fact,
+            command.Type);
+
+        Assert.Null(command.Data);
     }
 
     private sealed class TestCommandDispatcher : IAtlasCommandDispatcher
@@ -275,7 +360,14 @@ public sealed class StoreMemoryInteractionHandlerTests
                     {
                         Id = Guid.NewGuid(),
                         Content = storeCommand.Content,
-                        CreatedAt = DateTimeOffset.UtcNow
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        Type = storeCommand.Type,
+                        Interpretation = storeCommand.Data is null
+                            ? null
+                            : new AtlasMemoryInterpretation
+                            {
+                                Data = storeCommand.Data
+                            }
                     });
             }
 
@@ -304,6 +396,19 @@ public sealed class StoreMemoryInteractionHandlerTests
         public AtlasMemoryType Classify(string content)
         {
             return Type;
+        }
+    }
+
+    private sealed class TestMemoryInterpreter
+        : IAtlasMemoryInterpreter
+    {
+        public IAtlasMemoryData? Data { get; init; }
+
+        public IAtlasMemoryData? Interpret(
+            string content,
+            AtlasMemoryType type)
+        {
+            return Data;
         }
     }
 }

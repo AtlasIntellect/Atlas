@@ -79,6 +79,65 @@ public sealed class StoreMemoryCommandHandlerTests
                 cancellationTokenSource.Token));
     }
 
+    /// <summary>
+    /// Verifies that the handler preserves interpreted memory data
+    /// in the stored memory entry.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_Should_PreserveInterpretationData()
+    {
+        var memory = new TestMemory();
+        var handler = new StoreMemoryCommandHandler(memory);
+
+        var data = new AtlasTaskData
+        {
+            Description = "Buy milk."
+        };
+
+        var command = new StoreMemoryCommand(
+            "Buy milk.",
+            AtlasMemoryType.Task,
+            data);
+
+        var result = await handler.HandleAsync(
+            command,
+            TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result.Interpretation);
+        Assert.Same(
+            data,
+            result.Interpretation.Data);
+
+        Assert.NotNull(memory.StoredEntry);
+        Assert.NotNull(memory.StoredEntry.Interpretation);
+        Assert.Same(
+            data,
+            memory.StoredEntry.Interpretation.Data);
+    }
+
+    /// <summary>
+    /// Verifies that the handler does not create an interpretation
+    /// when the command contains no interpreted data.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_Should_NotCreateInterpretation_WhenDataIsNull()
+    {
+        var memory = new TestMemory();
+        var handler = new StoreMemoryCommandHandler(memory);
+
+        var command = new StoreMemoryCommand(
+            "Test memory",
+            AtlasMemoryType.Fact);
+
+        var result = await handler.HandleAsync(
+            command,
+            TestContext.Current.CancellationToken);
+
+        Assert.Null(result.Interpretation);
+        Assert.NotNull(memory.StoredEntry);
+        Assert.Null(memory.StoredEntry.Interpretation);
+    }
+
     private sealed class TestMemory : IAtlasMemory
     {
         public AtlasMemoryEntry? StoredEntry { get; private set; }

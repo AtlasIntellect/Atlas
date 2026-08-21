@@ -21,7 +21,13 @@ public sealed class StoreMemoryCommandHandler(
             Id = Guid.NewGuid(),
             Content = command.Content,
             CreatedAt = DateTimeOffset.UtcNow,
-            Type = command.Type
+            Type = command.Type,
+            Interpretation = command.Data is null
+                ? null
+                : new AtlasMemoryInterpretation
+                {
+                    Data = command.Data
+                }
         };
 
         await memory.StoreAsync(

@@ -11,7 +11,8 @@ namespace Atlas.Core.Interaction;
 public sealed class StoreMemoryInteractionHandler(
     IAtlasCommandDispatcher commandDispatcher,
     IAtlasInteractionMemoryContentExtractor contentExtractor,
-    IAtlasMemoryTypeClassifier typeClassifier)
+    IAtlasMemoryTypeClassifier typeClassifier,
+    IAtlasMemoryInterpreter interpreter)
     : IAtlasInteractionHandler
 {
     /// <inheritdoc/>
@@ -28,15 +29,19 @@ public sealed class StoreMemoryInteractionHandler(
         var content =
             contentExtractor.ExtractContent(interaction);
 
-        var type =
-            typeClassifier.Classify(content);
+        var type = typeClassifier.Classify(content);
+
+        var data = interpreter.Interpret(
+            content,
+            type);
 
         await commandDispatcher.DispatchAsync<
             StoreMemoryCommand,
             AtlasMemoryEntry>(
             new StoreMemoryCommand(
                 content,
-                type),
+                type,
+                data),
             cancellationToken);
 
         return new AtlasResponse

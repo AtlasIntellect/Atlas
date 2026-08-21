@@ -24,4 +24,9 @@ public sealed class AtlasMemoryEntry
     /// Gets the type of the memory.
     /// </summary>
     public AtlasMemoryType Type { get; init; } = AtlasMemoryType.Fact;
+    
+    /// <summary>
+    /// Gets the structured interpretation of the memory, when available.
+    /// </summary>
+    public AtlasMemoryInterpretation? Interpretation { get; init; }
 }

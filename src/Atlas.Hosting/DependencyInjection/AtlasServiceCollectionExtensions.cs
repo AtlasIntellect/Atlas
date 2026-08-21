@@ -85,6 +85,7 @@ public static class AtlasServiceCollectionExtensions
             .AddSingleton<IAtlasInteractionMemoryContentExtractor, AtlasInteractionMemoryContentExtractor>()
             .AddSingleton<IAtlasMemorySearchResponseFormatter, AtlasMemorySearchResponseFormatter>()
             .AddSingleton<IAtlasMemoryTypeClassifier, AtlasMemoryTypeClassifier>()
+            .AddSingleton<IAtlasMemoryInterpreter, AtlasMemoryInterpreter>()
             .AddSingleton<IAtlasRuntime, AtlasRuntime>()
             .AddSingleton<IAtlasApplicationContext, AtlasApplicationContext>()
             .AddSingleton<IAtlasEventHandlerBase, StartupHandler>()

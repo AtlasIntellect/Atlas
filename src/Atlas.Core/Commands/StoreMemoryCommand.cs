@@ -8,4 +8,5 @@ namespace Atlas.Core.Commands;
 /// </summary>
 public sealed record StoreMemoryCommand(
     string Content,
-    AtlasMemoryType Type) : AtlasCommand, IAtlasCommand;
+    AtlasMemoryType Type,
+    IAtlasMemoryData? Data = null) : AtlasCommand, IAtlasCommand;
