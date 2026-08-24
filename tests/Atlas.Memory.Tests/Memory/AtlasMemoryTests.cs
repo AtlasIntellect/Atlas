@@ -935,6 +935,216 @@ public sealed class AtlasMemoryTests
             results);
     }
 
+    /// <summary>
+    /// Verifies that an exact multi-word query match receives a higher relevance
+    /// score than a memory containing the same terms separately.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_RankExactPhraseMatchHigher()
+    {
+        var memory = new AtlasMemory();
+
+        var exactPhrase = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I use a Canon camera.",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-1),
+            Type = AtlasMemoryType.Fact
+        };
+
+        var separateTerms = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "My Canon lens works with every camera.",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Type = AtlasMemoryType.Fact
+        };
+
+        await memory.StoreAsync(
+            exactPhrase,
+            TestContext.Current.CancellationToken);
+
+        await memory.StoreAsync(
+            separateTerms,
+            TestContext.Current.CancellationToken);
+
+        var results = await memory.SearchAsync(
+            "Canon camera",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            exactPhrase.Id,
+            results[0].Id);
+    }
+
+    /// <summary>
+    /// Verifies that a memory containing a search term multiple times receives
+    /// a higher relevance score.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_RankMultipleOccurrencesHigher()
+    {
+        var memory = new AtlasMemory();
+
+        var repeated = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I like cameras. My camera is a Canon camera.",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-1),
+            Type = AtlasMemoryType.Fact
+        };
+
+        var single = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon camera.",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Type = AtlasMemoryType.Fact
+        };
+
+        await memory.StoreAsync(
+            repeated,
+            TestContext.Current.CancellationToken);
+
+        await memory.StoreAsync(
+            single,
+            TestContext.Current.CancellationToken);
+
+        var results = await memory.SearchAsync(
+            "camera",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            repeated.Id,
+            results[0].Id);
+    }
+
+    /// <summary>
+    /// Verifies that a memory must contain every search term to be returned.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_RequireAllQueryTerms()
+    {
+        var memory = new AtlasMemory();
+
+        await memory.StoreAsync(
+            new AtlasMemoryEntry
+            {
+                Id = Guid.NewGuid(),
+                Content = "I bought a Canon camera.",
+                CreatedAt = DateTimeOffset.UtcNow,
+                Type = AtlasMemoryType.Fact
+            },
+            TestContext.Current.CancellationToken);
+
+        await memory.StoreAsync(
+            new AtlasMemoryEntry
+            {
+                Id = Guid.NewGuid(),
+                Content = "I bought a Canon lens.",
+                CreatedAt = DateTimeOffset.UtcNow,
+                Type = AtlasMemoryType.Fact
+            },
+            TestContext.Current.CancellationToken);
+
+        var results = await memory.SearchAsync(
+            "Canon camera",
+            TestContext.Current.CancellationToken);
+
+        Assert.Single(results);
+        Assert.Contains(
+            "camera",
+            results[0].Content,
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Verifies that type filtering is applied before relevance ordering.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_FilterByTypeBeforeRankingResults()
+    {
+        var memory = new AtlasMemory();
+
+        var fact = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I own a Canon camera.",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-1),
+            Type = AtlasMemoryType.Fact
+        };
+
+        var preference = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I really like my Canon camera.",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Type = AtlasMemoryType.Preference
+        };
+
+        await memory.StoreAsync(
+            fact,
+            TestContext.Current.CancellationToken);
+
+        await memory.StoreAsync(
+            preference,
+            TestContext.Current.CancellationToken);
+
+        var results = await memory.SearchAsync(
+            new AtlasMemoryQuery
+            {
+                Text = "Canon camera",
+                Type = AtlasMemoryType.Fact
+            },
+            TestContext.Current.CancellationToken);
+
+        Assert.Single(results);
+        Assert.Equal(
+            fact.Id,
+            results[0].Id);
+    }
+
+    /// <summary>
+    /// Verifies that an empty query returns memories ordered by creation time.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_ReturnNewestMemoriesFirst_WhenQueryIsEmpty()
+    {
+        var memory = new AtlasMemory();
+
+        var older = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Older memory",
+            CreatedAt = DateTimeOffset.UtcNow.AddHours(-1),
+            Type = AtlasMemoryType.Fact
+        };
+
+        var newer = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Newer memory",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Type = AtlasMemoryType.Fact
+        };
+
+        await memory.StoreAsync(
+            older,
+            TestContext.Current.CancellationToken);
+
+        await memory.StoreAsync(
+            newer,
+            TestContext.Current.CancellationToken);
+
+        var results = await memory.SearchAsync(
+            new AtlasMemoryQuery(),
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            [newer.Id, older.Id],
+            results.Select(memoryEntry => memoryEntry.Id));
+    }
+
     private static AtlasMemoryEntry CreateMemory()
     {
         return new AtlasMemoryEntry
