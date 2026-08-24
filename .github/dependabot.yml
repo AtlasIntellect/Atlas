@@ -11,10 +11,3 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "nuget"
-
-  # Update .NET SDK versions
-  - package-ecosystem: "dotnet-sdk"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "wednesday"
