@@ -6,6 +6,31 @@
 public sealed class AtlasInteractionQueryExtractor
     : IAtlasInteractionQueryExtractor
 {
+    private static readonly string[] ConversationalPrefixes =
+    [
+        "Can you tell me ",
+        "Could you tell me ",
+        "Tell me ",
+        "Do you remember ",
+        "Do you know ",
+        "I'm trying to remember "
+    ];
+
+    private static readonly string[] QuestionPrefixes =
+    [
+        "What ",
+        "Which "
+    ];
+
+    private static readonly string[] QuestionMarkers =
+    [
+        " did I buy",
+        " do I own",
+        " do I have",
+        " did I own",
+        " did I have"
+    ];
+
     /// <inheritdoc/>
     public string ExtractQuery(AtlasInteraction interaction)
     {
@@ -25,14 +50,7 @@ public sealed class AtlasInteractionQueryExtractor
     private static string RemoveConversationalPrefix(
         string input)
     {
-        var prefixes = new[]
-        {
-            "Can you tell me ",
-            "Could you tell me ",
-            "Tell me "
-        };
-
-        var prefix = prefixes.FirstOrDefault(
+        var prefix = ConversationalPrefixes.FirstOrDefault(
             candidate =>
                 input.StartsWith(
                     candidate,
@@ -46,13 +64,7 @@ public sealed class AtlasInteractionQueryExtractor
     private static string RemoveQuestionPrefix(
         string input)
     {
-        var prefixes = new[]
-        {
-            "What ",
-            "Which "
-        };
-
-        var prefix = prefixes.FirstOrDefault(
+        var prefix = QuestionPrefixes.FirstOrDefault(
             candidate =>
                 input.StartsWith(
                     candidate,
@@ -66,19 +78,7 @@ public sealed class AtlasInteractionQueryExtractor
     private static string RemoveQuestionMarker(
         string input)
     {
-        var markers = new[]
-        {
-            " did I buy",
-            " do I own",
-            " do I have",
-            " did I own",
-            " did I have",
-            " I bought",
-            " I own",
-            " I have"
-        };
-
-        var marker = markers.FirstOrDefault(
+        var marker = QuestionMarkers.FirstOrDefault(
             candidate =>
                 input.Contains(
                     candidate,
