@@ -51,29 +51,17 @@ public sealed class AtlasMemory : IAtlasMemory
             .ToArray();
 
         if (terms.Length == 0)
-        {
             return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
-        }
 
-        var results = _memories.Values
-            .Where(memory =>
-                terms.All(term =>
-                    memory.Content.Contains(
-                        term,
-                        StringComparison.OrdinalIgnoreCase)))
-            .Select(memory => new
-            {
-                Memory = memory,
-                Score = CalculateRelevance(
-                    memory.Content,
-                    terms)
-            })
-            .OrderByDescending(result => result.Score)
-            .ThenByDescending(result => result.Memory.CreatedAt)
-            .Select(result => result.Memory)
-            .ToList();
+        var normalizedQuery = string.Join(
+            ' ',
+            terms);
 
-        return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>(results);
+        return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>(
+            SearchMemories(
+                normalizedQuery,
+                terms,
+                null));
     }
 
     /// <inheritdoc/>
@@ -85,29 +73,51 @@ public sealed class AtlasMemory : IAtlasMemory
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var memories = _memories.Values.AsEnumerable();
-
-        if (query.Type is not null)
-        {
-            memories = memories.Where(
-                memory => memory.Type == query.Type);
-        }
-
-        if (!string.IsNullOrWhiteSpace(query.Text))
-        {
-            var terms = query.Text
+        var terms = string.IsNullOrWhiteSpace(query.Text)
+            ? []
+            : query.Text
                 .Split(
                     (char[]?)null,
                     StringSplitOptions.RemoveEmptyEntries)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToArray();
 
-            if (terms.Length == 0)
-            {
-                return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
-            }
+        var normalizedQuery = string.Join(
+            ' ',
+            terms);
 
-            memories = memories
+        return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>(
+            SearchMemories(
+                normalizedQuery,
+                terms,
+                query.Type));
+    }
+
+    private AtlasMemoryEntry[] SearchMemories(
+        string normalizedQuery,
+        string[] terms,
+        AtlasMemoryType? type)
+    {
+        var memories = _memories.Values.AsEnumerable();
+
+        if (type is not null)
+        {
+            memories = memories.Where(
+                memory => memory.Type == type);
+        }
+
+        if (terms.Length == 0)
+        {
+            return
+            [
+                .. memories
+                    .OrderByDescending(memory => memory.CreatedAt)
+            ];
+        }
+
+        return
+        [
+            .. memories
                 .Where(memory =>
                     terms.All(term =>
                         memory.Content.Contains(
@@ -118,32 +128,28 @@ public sealed class AtlasMemory : IAtlasMemory
                     Memory = memory,
                     Score = CalculateRelevance(
                         memory.Content,
+                        normalizedQuery,
                         terms)
                 })
                 .OrderByDescending(result => result.Score)
                 .ThenByDescending(result => result.Memory.CreatedAt)
-                .Select(result => result.Memory);
-        }
-        else
-        {
-            memories = memories
-                .OrderByDescending(
-                    memory => memory.CreatedAt);
-        }
-
-        return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>(
-            [.. memories]);
+                .Select(result => result.Memory)
+        ];
     }
 
     private static int CalculateRelevance(
         string content,
-        IReadOnlyList<string> terms)
+        string normalizedQuery,
+        string[] terms)
     {
-        var score = 0;
+        var score = terms.Sum(
+            term => CountOccurrences(content, term));
 
-        foreach (var term in terms)
+        if (content.Contains(
+                normalizedQuery,
+                StringComparison.OrdinalIgnoreCase))
         {
-            score += CountOccurrences(content, term);
+            score++;
         }
 
         return score;
