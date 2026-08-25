@@ -10,7 +10,6 @@ namespace Atlas.Core.Interaction;
 /// </summary>
 public sealed class SearchMemoryInteractionHandler(
     IAtlasCommandDispatcher commandDispatcher,
-    IAtlasInteractionQueryExtractor queryExtractor,
     IAtlasMemorySearchResponseFormatter responseFormatter)
     : IAtlasInteractionHandler
 {
@@ -21,12 +20,13 @@ public sealed class SearchMemoryInteractionHandler(
     /// <inheritdoc/>
     public async Task<AtlasResponse> HandleAsync(
         AtlasInteraction interaction,
+        AtlasInteractionInterpretation interpretation,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var query =
-            queryExtractor.ExtractQuery(interaction);
+        var query = interpretation.Query ?? throw new InvalidOperationException(
+                "Search-memory interpretation did not contain a query.");
 
         var memories =
             await commandDispatcher.DispatchAsync<

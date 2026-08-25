@@ -72,6 +72,7 @@ public static class AtlasServiceCollectionExtensions
             .AddSingleton<IAtlasInteractionHandler, SearchMemoryInteractionHandler>()
             .AddSingleton<IAtlasInteractionHandler, StoreMemoryInteractionHandler>()
             .AddSingleton<IAtlasInteractionHandler, UnknownInteractionHandler>()
+            .AddSingleton<IAtlasInteractionIntentDetector, AtlasInteractionIntentDetector>()
             .AddSingleton<IAtlasInteractionProcessor, AtlasInteractionProcessor>()
             .AddSingleton<ProcessInteractionCommandHandler>()
             .AddSingleton<
@@ -83,6 +84,8 @@ public static class AtlasServiceCollectionExtensions
                     provider.GetRequiredService<ProcessInteractionCommandHandler>())
             .AddSingleton<IAtlasInteractionQueryExtractor, AtlasInteractionQueryExtractor>()
             .AddSingleton<IAtlasInteractionMemoryContentExtractor, AtlasInteractionMemoryContentExtractor>()
+            .AddSingleton<IAtlasInteractionMemoryContentExtractor, AtlasInteractionMemoryContentExtractor>()
+            .AddSingleton<IAtlasInteractionInterpreter, AtlasInteractionInterpreter>()
             .AddSingleton<IAtlasMemorySearchResponseFormatter, AtlasMemorySearchResponseFormatter>()
             .AddSingleton<IAtlasMemoryTypeClassifier, AtlasMemoryTypeClassifier>()
             .AddSingleton<IAtlasMemoryInterpreter, AtlasMemoryInterpreter>()

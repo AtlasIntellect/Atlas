@@ -14,9 +14,11 @@ public interface IAtlasInteractionHandler
     /// Handles the specified interaction.
     /// </summary>
     /// <param name="interaction">The interaction to handle.</param>
+    /// <param name="interpretation">The interpretation of the interaction.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The response produced by the handler.</returns>
     Task<AtlasResponse> HandleAsync(
         AtlasInteraction interaction,
+        AtlasInteractionInterpretation interpretation,
         CancellationToken cancellationToken = default);
 }

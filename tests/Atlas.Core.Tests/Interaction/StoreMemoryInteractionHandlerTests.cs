@@ -20,11 +20,6 @@ public sealed class StoreMemoryInteractionHandlerTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
-        var contentExtractor = new TestContentExtractor
-        {
-            Content = "I bought a Canon EOS 350D camera."
-        };
-
         var typeClassifier = new TestMemoryTypeClassifier
         {
             Type = AtlasMemoryType.Fact
@@ -35,7 +30,6 @@ public sealed class StoreMemoryInteractionHandlerTests
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
-                contentExtractor,
                 typeClassifier,
                 interpreter);
 
@@ -52,11 +46,6 @@ public sealed class StoreMemoryInteractionHandlerTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
-        var contentExtractor = new TestContentExtractor
-        {
-            Content = "I bought a Canon EOS 350D camera."
-        };
-
         var typeClassifier = new TestMemoryTypeClassifier
         {
             Type = AtlasMemoryType.Fact
@@ -67,7 +56,6 @@ public sealed class StoreMemoryInteractionHandlerTests
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
-                contentExtractor,
                 typeClassifier,
                 interpreter);
 
@@ -78,6 +66,8 @@ public sealed class StoreMemoryInteractionHandlerTests
 
         await handler.HandleAsync(
             interaction,
+            CreateStoreInterpretation(
+                "I bought a Canon EOS 350D camera."),
             TestContext.Current.CancellationToken);
 
         var command =
@@ -85,7 +75,7 @@ public sealed class StoreMemoryInteractionHandlerTests
                 commandDispatcher.ReceivedCommand);
 
         Assert.Equal(
-            contentExtractor.Content,
+            "I bought a Canon EOS 350D camera.",
             command.Content);
     }
 
@@ -97,11 +87,6 @@ public sealed class StoreMemoryInteractionHandlerTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
-        var contentExtractor = new TestContentExtractor
-        {
-            Content = "I bought a Canon EOS 350D camera."
-        };
-
         var typeClassifier = new TestMemoryTypeClassifier
         {
             Type = AtlasMemoryType.Fact
@@ -112,7 +97,6 @@ public sealed class StoreMemoryInteractionHandlerTests
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
-                contentExtractor,
                 typeClassifier,
                 interpreter);
 
@@ -123,6 +107,8 @@ public sealed class StoreMemoryInteractionHandlerTests
 
         var response = await handler.HandleAsync(
             interaction,
+            CreateStoreInterpretation(
+                "I bought a Canon EOS 350D camera."),
             TestContext.Current.CancellationToken);
 
         Assert.Equal(
@@ -138,11 +124,6 @@ public sealed class StoreMemoryInteractionHandlerTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
-        var contentExtractor = new TestContentExtractor
-        {
-            Content = "I bought a Canon EOS 350D camera."
-        };
-
         var typeClassifier = new TestMemoryTypeClassifier
         {
             Type = AtlasMemoryType.Fact
@@ -153,7 +134,6 @@ public sealed class StoreMemoryInteractionHandlerTests
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
-                contentExtractor,
                 typeClassifier,
                 interpreter);
 
@@ -169,6 +149,8 @@ public sealed class StoreMemoryInteractionHandlerTests
 
         await handler.HandleAsync(
             interaction,
+            CreateStoreInterpretation(
+                "I bought a Canon EOS 350D camera."),
             cancellationToken);
 
         Assert.Equal(
@@ -185,11 +167,6 @@ public sealed class StoreMemoryInteractionHandlerTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
-        var contentExtractor = new TestContentExtractor
-        {
-            Content = "My favorite color is blue."
-        };
-
         var typeClassifier = new TestMemoryTypeClassifier
         {
             Type = AtlasMemoryType.Preference
@@ -200,7 +177,6 @@ public sealed class StoreMemoryInteractionHandlerTests
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
-                contentExtractor,
                 typeClassifier,
                 interpreter);
 
@@ -209,6 +185,8 @@ public sealed class StoreMemoryInteractionHandlerTests
             {
                 Input = "Remember that my favorite color is blue."
             },
+            CreateStoreInterpretation(
+                "My favorite color is blue."),
             TestContext.Current.CancellationToken);
 
         var command =
@@ -233,11 +211,6 @@ public sealed class StoreMemoryInteractionHandlerTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
-        var contentExtractor = new TestContentExtractor
-        {
-            Content = "Buy milk."
-        };
-
         var typeClassifier = new TestMemoryTypeClassifier
         {
             Type = AtlasMemoryType.Task
@@ -254,7 +227,6 @@ public sealed class StoreMemoryInteractionHandlerTests
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
-                contentExtractor,
                 typeClassifier,
                 interpreter);
 
@@ -263,6 +235,8 @@ public sealed class StoreMemoryInteractionHandlerTests
             {
                 Input = "Remind me to buy milk."
             },
+            CreateStoreInterpretation(
+                "Buy milk."),
             TestContext.Current.CancellationToken);
 
         var command =
@@ -299,11 +273,6 @@ public sealed class StoreMemoryInteractionHandlerTests
     {
         var commandDispatcher = new TestCommandDispatcher();
 
-        var contentExtractor = new TestContentExtractor
-        {
-            Content = "I bought a Canon EOS 350D camera."
-        };
-
         var typeClassifier = new TestMemoryTypeClassifier
         {
             Type = AtlasMemoryType.Fact
@@ -317,16 +286,21 @@ public sealed class StoreMemoryInteractionHandlerTests
         var handler =
             new StoreMemoryInteractionHandler(
                 commandDispatcher,
-                contentExtractor,
                 typeClassifier,
                 interpreter);
 
+        var interaction = new AtlasInteraction
+        {
+            Input = "I bought a Canon EOS 350D camera."
+        };
+
         await handler.HandleAsync(
-            new AtlasInteraction
-            {
-                Input = "Remember that I bought a Canon EOS 350D camera."
-            },
-            TestContext.Current.CancellationToken);
+            interaction,
+            new AtlasInteractionInterpretation(
+                AtlasInteractionIntent.StoreMemory,
+                null,
+                "Remember that I bought a Canon EOS 350D camera."),
+                TestContext.Current.CancellationToken);
 
         var command =
             Assert.IsType<StoreMemoryCommand>(
@@ -337,6 +311,42 @@ public sealed class StoreMemoryInteractionHandlerTests
             command.Type);
 
         Assert.Null(command.Data);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="StoreMemoryInteractionHandler.HandleAsync"/> method
+    /// throws an <see cref="InvalidOperationException"/> when the memory content is missing
+    /// in the provided <see cref="AtlasInteractionInterpretation"/>.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_Should_Throw_WhenMemoryContentIsMissing()
+    {
+        var commandDispatcher = new TestCommandDispatcher();
+
+        var typeClassifier = new TestMemoryTypeClassifier
+        {
+            Type = AtlasMemoryType.Fact
+        };
+
+        var interpreter = new TestMemoryInterpreter();
+
+        var handler =
+            new StoreMemoryInteractionHandler(
+                commandDispatcher,
+                typeClassifier,
+                interpreter);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => handler.HandleAsync(
+                new AtlasInteraction
+                {
+                    Input = "Remember something."
+                },
+                new AtlasInteractionInterpretation(
+                    AtlasInteractionIntent.StoreMemory,
+                    null,
+                    null),
+                TestContext.Current.CancellationToken));
     }
 
     private sealed class TestCommandDispatcher : IAtlasCommandDispatcher
@@ -376,18 +386,6 @@ public sealed class StoreMemoryInteractionHandlerTests
         }
     }
 
-    private sealed class TestContentExtractor
-        : IAtlasInteractionMemoryContentExtractor
-    {
-        public string Content { get; init; } = string.Empty;
-
-        public string ExtractContent(
-            AtlasInteraction interaction)
-        {
-            return Content;
-        }
-    }
-
     private sealed class TestMemoryTypeClassifier
         : IAtlasMemoryTypeClassifier
     {
@@ -410,5 +408,14 @@ public sealed class StoreMemoryInteractionHandlerTests
         {
             return Data;
         }
+    }
+
+    private static AtlasInteractionInterpretation CreateStoreInterpretation(
+        string content)
+    {
+        return new AtlasInteractionInterpretation(
+            AtlasInteractionIntent.StoreMemory,
+            null,
+            content);
     }
 }

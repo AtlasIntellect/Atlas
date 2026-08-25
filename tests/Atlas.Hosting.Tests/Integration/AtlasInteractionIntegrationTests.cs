@@ -301,4 +301,50 @@ public sealed class AtlasInteractionIntegrationTests
             AtlasMemoryType.Task,
             entry.Type);
     }
+
+    /// <summary>
+    /// Verifies that a natural-language memory search is interpreted and processed
+    /// through the complete interaction pipeline.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_Should_InterpretAndProcessSearchInteractionThroughFullPipeline()
+    {
+        var services = new ServiceCollection();
+
+        services.AddAtlas();
+
+        await using var serviceProvider =
+            services.BuildServiceProvider();
+
+        var memory =
+            serviceProvider.GetRequiredService<IAtlasMemory>();
+
+        var entry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "I bought a Canon EOS 350D camera.",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Type = AtlasMemoryType.Fact
+        };
+
+        await memory.StoreAsync(
+            entry,
+            TestContext.Current.CancellationToken);
+
+        var processor =
+            serviceProvider.GetRequiredService<IAtlasInteractionProcessor>();
+
+        var response = await processor.ProcessAsync(
+            new AtlasInteraction
+            {
+                Input = "What camera do I have?"
+            },
+            TestContext.Current.CancellationToken);
+
+        Assert.NotNull(response);
+        Assert.Contains(
+            "Canon EOS 350D camera",
+            response.Content,
+            StringComparison.OrdinalIgnoreCase);
+    }
 }
