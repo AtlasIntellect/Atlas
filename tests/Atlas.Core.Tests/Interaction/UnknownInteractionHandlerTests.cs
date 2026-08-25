@@ -35,8 +35,15 @@ public sealed class UnknownInteractionHandlerTests
             Input = "Hello Atlas"
         };
 
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                AtlasInteractionIntent.Unknown,
+                null,
+                null);
+
         var response = await handler.HandleAsync(
             interaction,
+            interpretation,
             TestContext.Current.CancellationToken);
 
         Assert.Equal(
@@ -57,6 +64,12 @@ public sealed class UnknownInteractionHandlerTests
             Input = "Hello Atlas"
         };
 
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                AtlasInteractionIntent.Unknown,
+                null,
+                null);
+
         using var cancellationTokenSource = new CancellationTokenSource();
 
         await cancellationTokenSource.CancelAsync();
@@ -64,6 +77,7 @@ public sealed class UnknownInteractionHandlerTests
         await Assert.ThrowsAsync<OperationCanceledException>(
             () => handler.HandleAsync(
                 interaction,
+                interpretation,
                 cancellationTokenSource.Token));
     }
 }

@@ -5,37 +5,74 @@ namespace Atlas.Core.Interaction;
 /// <summary>
 /// Detects the intent of Atlas interactions.
 /// </summary>
-public static class AtlasInteractionIntentDetector
+public sealed class AtlasInteractionIntentDetector
+    : IAtlasInteractionIntentDetector
 {
-    /// <summary>
-    /// Detects the intent of the specified interaction.
-    /// </summary>
-    /// <param name="interaction">The interaction to analyze.</param>
-    /// <returns>The detected interaction intent.</returns>
-    public static AtlasInteractionIntent Detect(
+    private static readonly string[] StorePrefixes =
+    [
+        "remember ",
+        "store ",
+        "save "
+    ];
+
+    private static readonly string[] SearchPrefixes =
+    [
+        "what ",
+        "which ",
+        "where ",
+        "when ",
+        "who ",
+        "do you remember ",
+        "do you know ",
+        "can you tell me ",
+        "could you tell me ",
+        "tell me "
+    ];
+
+    /// <inheritdoc/>
+    public AtlasInteractionIntent Detect(
         AtlasInteraction interaction)
     {
         ArgumentNullException.ThrowIfNull(interaction);
 
         var input = interaction.Input.Trim();
 
-        if (input.StartsWith(
-                "remember ",
-                StringComparison.OrdinalIgnoreCase) ||
-            input.StartsWith(
-                "store ",
-                StringComparison.OrdinalIgnoreCase))
+        if (IsStoreRequest(input))
         {
             return AtlasInteractionIntent.StoreMemory;
         }
 
-        if (input.Contains(
-                "camera",
-                StringComparison.OrdinalIgnoreCase))
+        if (IsSearchRequest(input))
         {
             return AtlasInteractionIntent.SearchMemory;
         }
 
         return AtlasInteractionIntent.Unknown;
+    }
+
+    private static bool IsStoreRequest(
+        string input)
+    {
+        return StorePrefixes.Any(
+            prefix =>
+                input.StartsWith(
+                    prefix,
+                    StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool IsSearchRequest(
+        string input)
+    {
+        if (SearchPrefixes.Any(
+                prefix =>
+                    input.StartsWith(
+                        prefix,
+                        StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        return input.EndsWith(
+            '?');
     }
 }

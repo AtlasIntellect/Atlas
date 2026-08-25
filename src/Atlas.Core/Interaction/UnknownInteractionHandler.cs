@@ -14,6 +14,7 @@ public sealed class UnknownInteractionHandler : IAtlasInteractionHandler
     /// <inheritdoc/>
     public Task<AtlasResponse> HandleAsync(
         AtlasInteraction interaction,
+        AtlasInteractionInterpretation interpretation,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
