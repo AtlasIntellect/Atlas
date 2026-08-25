@@ -10,7 +10,6 @@ namespace Atlas.Core.Interaction;
 /// </summary>
 public sealed class StoreMemoryInteractionHandler(
     IAtlasCommandDispatcher commandDispatcher,
-    IAtlasInteractionMemoryContentExtractor contentExtractor,
     IAtlasMemoryTypeClassifier typeClassifier,
     IAtlasMemoryInterpreter interpreter)
     : IAtlasInteractionHandler
@@ -22,12 +21,13 @@ public sealed class StoreMemoryInteractionHandler(
     /// <inheritdoc/>
     public async Task<AtlasResponse> HandleAsync(
         AtlasInteraction interaction,
+        AtlasInteractionInterpretation interpretation,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var content =
-            contentExtractor.ExtractContent(interaction);
+        var content = interpretation.MemoryContent ?? throw new InvalidOperationException(
+                "Store-memory interpretation did not contain memory content.");
 
         var type = typeClassifier.Classify(content);
 

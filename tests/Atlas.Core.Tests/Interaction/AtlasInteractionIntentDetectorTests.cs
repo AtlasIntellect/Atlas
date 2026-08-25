@@ -20,27 +20,9 @@ public sealed class AtlasInteractionIntentDetectorTests
             Input = "What camera do I have?"
         };
 
-        var result =
-            AtlasInteractionIntentDetector.Detect(interaction);
+        var detector = new AtlasInteractionIntentDetector();
 
-        Assert.Equal(
-            AtlasInteractionIntent.SearchMemory,
-            result);
-    }
-
-    /// <summary>
-    /// Verifies that intent detection is case insensitive.
-    /// </summary>
-    [Fact]
-    public void Detect_Should_BeCaseInsensitive()
-    {
-        var interaction = new AtlasInteraction
-        {
-            Input = "WHAT CAMERA DO I HAVE?"
-        };
-
-        var result =
-            AtlasInteractionIntentDetector.Detect(interaction);
+        var result = detector.Detect(interaction);
 
         Assert.Equal(
             AtlasInteractionIntent.SearchMemory,
@@ -58,8 +40,9 @@ public sealed class AtlasInteractionIntentDetectorTests
             Input = "Hello Atlas"
         };
 
-        var result =
-            AtlasInteractionIntentDetector.Detect(interaction);
+        var detector = new AtlasInteractionIntentDetector();
+
+        var result = detector.Detect(interaction);
 
         Assert.Equal(
             AtlasInteractionIntent.Unknown,
@@ -77,8 +60,9 @@ public sealed class AtlasInteractionIntentDetectorTests
             Input = "   What camera do I have?   "
         };
 
-        var result =
-            AtlasInteractionIntentDetector.Detect(interaction);
+        var detector = new AtlasInteractionIntentDetector();
+
+        var result = detector.Detect(interaction);
 
         Assert.Equal(
             AtlasInteractionIntent.SearchMemory,
@@ -96,8 +80,9 @@ public sealed class AtlasInteractionIntentDetectorTests
             Input = "Remember that I bought a Canon EOS 350D."
         };
 
-        var result =
-            AtlasInteractionIntentDetector.Detect(interaction);
+        var detector = new AtlasInteractionIntentDetector();
+
+        var result = detector.Detect(interaction);
 
         Assert.Equal(
             AtlasInteractionIntent.StoreMemory,
@@ -115,8 +100,9 @@ public sealed class AtlasInteractionIntentDetectorTests
             Input = "Store this memory."
         };
 
-        var result =
-            AtlasInteractionIntentDetector.Detect(interaction);
+        var detector = new AtlasInteractionIntentDetector();
+
+        var result = detector.Detect(interaction);
 
         Assert.Equal(
             AtlasInteractionIntent.StoreMemory,
@@ -134,11 +120,105 @@ public sealed class AtlasInteractionIntentDetectorTests
             Input = "REMEMBER THAT I BOUGHT A CANON EOS 350D."
         };
 
-        var result =
-            AtlasInteractionIntentDetector.Detect(interaction);
+        var detector = new AtlasInteractionIntentDetector();
+
+        var result = detector.Detect(interaction);
 
         Assert.Equal(
             AtlasInteractionIntent.StoreMemory,
             result);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="AtlasInteractionIntentDetector.Detect"/> method
+    /// correctly identifies memory-related questions as <see cref="AtlasInteractionIntent.SearchMemory"/>.
+    /// </summary>
+    /// <param name="input">The input string representing a memory-related question.</param>
+    [Theory]
+    [InlineData("What camera do I have?")]
+    [InlineData("What car did I buy?")]
+    [InlineData("Which laptop do I own?")]
+    [InlineData("Do you remember my favorite color?")]
+    [InlineData("Can you tell me what phone I bought?")]
+    [InlineData("Did I buy a camera?")]
+    [InlineData("  What car did I buy?  ")]
+    public void Detect_Should_ReturnSearchMemory_ForMemoryQuestions(
+        string input)
+    {
+        var detector = new AtlasInteractionIntentDetector();
+
+        var result = detector.Detect(
+            new AtlasInteraction
+            {
+                Input = input
+            });
+
+        Assert.Equal(
+            AtlasInteractionIntent.SearchMemory,
+            result);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="AtlasInteractionIntentDetector.Detect"/> method 
+    /// correctly identifies memory storage requests based on the provided input.
+    /// </summary>
+    /// <param name="input">The input string representing a memory storage request.</param>
+    [Theory]
+    [InlineData("Remember that I bought a camera.")]
+    [InlineData("Store my favorite color.")]
+    [InlineData("Save that I like pizza.")]
+    public void Detect_Should_ReturnStoreMemory_ForMemoryStorageRequests(
+        string input)
+    {
+        var detector = new AtlasInteractionIntentDetector();
+
+        var result = detector.Detect(
+            new AtlasInteraction
+            {
+                Input = input
+            });
+
+        Assert.Equal(
+            AtlasInteractionIntent.StoreMemory,
+            result);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="AtlasInteractionIntentDetector.Detect(AtlasInteraction)"/> method
+    /// returns <see cref="AtlasInteractionIntent.Unknown"/> when the input consists of ordinary statements
+    /// that do not indicate any specific intent.
+    /// </summary>
+    /// <param name="input">The input string representing an ordinary statement.</param>
+    [Theory]
+    [InlineData("I bought a camera yesterday.")]
+    [InlineData("I like pizza.")]
+    [InlineData("Hello Atlas.")]
+    public void Detect_Should_ReturnUnknown_ForOrdinaryStatements(
+        string input)
+    {
+        var detector = new AtlasInteractionIntentDetector();
+
+        var result = detector.Detect(
+            new AtlasInteraction
+            {
+                Input = input
+            });
+
+        Assert.Equal(
+            AtlasInteractionIntent.Unknown,
+            result);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="AtlasInteractionIntentDetector.Detect(AtlasInteraction)"/> method
+    /// throws an <see cref="ArgumentNullException"/> when the provided interaction is <c>null</c>.
+    /// </summary>
+    [Fact]
+    public void Detect_Should_Throw_WhenInteractionIsNull()
+    {
+        var detector = new AtlasInteractionIntentDetector();
+
+        Assert.Throws<ArgumentNullException>(
+            () => detector.Detect(null!));
     }
 }

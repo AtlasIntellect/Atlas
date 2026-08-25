@@ -18,8 +18,24 @@ public sealed class AtlasInteractionProcessorTests
         var handler = new TestInteractionHandler(
             AtlasInteractionIntent.SearchMemory);
 
-        var processor =
-            new AtlasInteractionProcessor([handler]);
+        var handlers = new[]
+        {
+            handler
+        };
+
+        var interactionInterpreter =
+            new TestInteractionInterpreter
+            {
+                Interpretation =
+                    new AtlasInteractionInterpretation(
+                        AtlasInteractionIntent.SearchMemory,
+                        "camera",
+                        null)
+            };
+
+        var processor = new AtlasInteractionProcessor(
+            interactionInterpreter,
+            handlers);
 
         var interaction = new AtlasInteraction
         {
@@ -48,8 +64,24 @@ public sealed class AtlasInteractionProcessorTests
             }
         };
 
-        var processor =
-            new AtlasInteractionProcessor([handler]);
+        var handlers = new[]
+        {
+            handler
+        };
+
+        var interactionInterpreter =
+            new TestInteractionInterpreter
+            {
+                Interpretation =
+                    new AtlasInteractionInterpretation(
+                        AtlasInteractionIntent.SearchMemory,
+                        "camera",
+                        null)
+            };
+
+        var processor = new AtlasInteractionProcessor(
+            interactionInterpreter,
+            handlers);
 
         var interaction = new AtlasInteraction
         {
@@ -78,12 +110,25 @@ public sealed class AtlasInteractionProcessorTests
         var searchHandler = new TestInteractionHandler(
             AtlasInteractionIntent.SearchMemory);
 
-        var processor =
-            new AtlasInteractionProcessor(
-            [
-                unrelatedHandler,
-                searchHandler
-            ]);
+        var handlers = new[]
+        {
+            unrelatedHandler,
+            searchHandler
+        };
+
+        var interactionInterpreter =
+            new TestInteractionInterpreter
+            {
+                Interpretation =
+                    new AtlasInteractionInterpretation(
+                        AtlasInteractionIntent.SearchMemory,
+                        "camera",
+                        null)
+            };
+
+        var processor = new AtlasInteractionProcessor(
+            interactionInterpreter,
+            handlers);
 
         var interaction = new AtlasInteraction
         {
@@ -106,9 +151,20 @@ public sealed class AtlasInteractionProcessorTests
     [Fact]
     public async Task ProcessAsync_Should_Throw_WhenNoHandlerExists()
     {
+        var interactionInterpreter =
+            new TestInteractionInterpreter
+            {
+                Interpretation =
+                    new AtlasInteractionInterpretation(
+                        AtlasInteractionIntent.Unknown,
+                        null,
+                        null)
+            };
+
         var processor =
             new AtlasInteractionProcessor(
-                Array.Empty<IAtlasInteractionHandler>());
+                interactionInterpreter,
+                []);
 
         var interaction = new AtlasInteraction
         {
@@ -135,8 +191,24 @@ public sealed class AtlasInteractionProcessorTests
         var handler = new TestInteractionHandler(
             AtlasInteractionIntent.SearchMemory);
 
-        var processor =
-            new AtlasInteractionProcessor([handler]);
+        var handlers = new[]
+        {
+            handler
+        };
+
+        var interactionInterpreter =
+            new TestInteractionInterpreter
+            {
+                Interpretation =
+                    new AtlasInteractionInterpretation(
+                        AtlasInteractionIntent.SearchMemory,
+                        "camera",
+                        null)
+            };
+
+        var processor = new AtlasInteractionProcessor(
+            interactionInterpreter,
+            handlers);
 
         using var cancellationTokenSource = new CancellationTokenSource();
 
@@ -166,8 +238,24 @@ public sealed class AtlasInteractionProcessorTests
         var handler = new TestInteractionHandler(
             AtlasInteractionIntent.SearchMemory);
 
-        var processor =
-            new AtlasInteractionProcessor([handler]);
+        var handlers = new[]
+        {
+            handler
+        };
+
+        var interactionInterpreter =
+            new TestInteractionInterpreter
+            {
+                Interpretation =
+                    new AtlasInteractionInterpretation(
+                        AtlasInteractionIntent.SearchMemory,
+                        "camera",
+                        null)
+            };
+
+        var processor = new AtlasInteractionProcessor(
+            interactionInterpreter,
+            handlers);
 
         var interaction = new AtlasInteraction
         {
@@ -184,10 +272,53 @@ public sealed class AtlasInteractionProcessorTests
                 cancellationTokenSource.Token));
     }
 
+    /// <summary>
+    /// Verifies that the processor passes the interpretation to the selected handler.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_Should_PassInterpretation_ToHandler()
+    {
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                AtlasInteractionIntent.SearchMemory,
+                "camera",
+                null);
+
+        var interactionInterpreter =
+            new TestInteractionInterpreter
+            {
+                Interpretation = interpretation
+            };
+
+        var handler =
+            new TestInteractionHandler(
+                AtlasInteractionIntent.SearchMemory);
+
+        var processor =
+            new AtlasInteractionProcessor(
+                interactionInterpreter,
+                [handler]);
+
+        var interaction = new AtlasInteraction
+        {
+            Input = "What camera do I have?"
+        };
+
+        await processor.ProcessAsync(
+            interaction,
+            TestContext.Current.CancellationToken);
+
+        Assert.Same(
+            interpretation,
+            handler.ReceivedInterpretation);
+    }
+
     private sealed class TestInteractionHandler(
         AtlasInteractionIntent intent)
         : IAtlasInteractionHandler
     {
+        public AtlasInteractionInterpretation? ReceivedInterpretation { get; private set; }
+
         public AtlasInteractionIntent Intent =>
             intent;
 
@@ -202,12 +333,30 @@ public sealed class AtlasInteractionProcessorTests
 
         public Task<AtlasResponse> HandleAsync(
             AtlasInteraction interaction,
+            AtlasInteractionInterpretation interpretation,
             CancellationToken cancellationToken = default)
         {
             WasCalled = true;
+            ReceivedInterpretation = interpretation;
             ReceivedCancellationToken = cancellationToken;
 
             return Task.FromResult(Response);
+        }
+    }
+
+    private sealed class TestInteractionInterpreter
+        : IAtlasInteractionInterpreter
+    {
+        public AtlasInteractionInterpretation Interpretation { get; init; } =
+            new(
+                AtlasInteractionIntent.Unknown,
+                null,
+                null);
+
+        public AtlasInteractionInterpretation Interpret(
+            AtlasInteraction interaction)
+        {
+            return Interpretation;
         }
     }
 }

@@ -6,6 +6,7 @@ namespace Atlas.Core.Interaction;
 /// Provides the default implementation for processing Atlas interactions.
 /// </summary>
 public sealed class AtlasInteractionProcessor(
+    IAtlasInteractionInterpreter interactionInterpreter,
     IEnumerable<IAtlasInteractionHandler> handlers)
     : IAtlasInteractionProcessor
 {
@@ -16,19 +17,20 @@ public sealed class AtlasInteractionProcessor(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var intent =
-            AtlasInteractionIntentDetector.Detect(interaction);
+        var interpretation =
+            interactionInterpreter.Interpret(interaction);
 
         var handler =
             handlers.FirstOrDefault(
-                candidate => candidate.Intent == intent);
+                candidate =>
+                    candidate.Intent == interpretation.Intent);
 
-        if (handler is null)
-            throw new InvalidOperationException(
-                $"No interaction handler registered for intent: {intent}.");
-
-        return await handler.HandleAsync(
-            interaction,
-            cancellationToken);
+        return handler is null
+            ? throw new InvalidOperationException(
+                $"No interaction handler registered for intent: {interpretation.Intent}.")
+            : await handler.HandleAsync(
+                interaction,
+                interpretation,
+                cancellationToken);
     }
 }
