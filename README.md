@@ -1,4 +1,4 @@
-# Atlas
+<img width="978" height="326" alt="Atlas-readme" src="https://github.com/user-attachments/assets/47c1184b-0623-42da-8632-b53209543baf" />
 
 > *The open-source operating system for personal intelligence.*
 
