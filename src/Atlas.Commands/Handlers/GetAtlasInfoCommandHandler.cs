@@ -1,7 +1,7 @@
-﻿using Atlas.Abstractions.Commands;
-using Atlas.Abstractions.Runtime;
+﻿using Atlas.Commands.Interfaces;
+using Atlas.Commands.Models;
 
-namespace Atlas.Core.Commands;
+namespace Atlas.Commands.Handlers;
 
 /// <summary>
 /// Represents a command handler for retrieving information about the current Atlas instance.

@@ -1,7 +1,6 @@
-﻿using Atlas.Abstractions.Commands;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Atlas.Commands.Interfaces;
 
-namespace Atlas.Core.Commands;
+namespace Atlas.Commands.Dispatchers;
 
 /// <summary>
 /// Provides functionality for dispatching Atlas commands to their registered handlers.

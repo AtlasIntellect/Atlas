@@ -1,7 +1,6 @@
-﻿using Atlas.Abstractions.Commands;
-using Atlas.Abstractions.Memory;
+﻿using Atlas.Commands.Interfaces;
 
-namespace Atlas.Core.Commands;
+namespace Atlas.Commands.Models;
 
 /// <summary>
 /// Represents a command to store a memory in Atlas.

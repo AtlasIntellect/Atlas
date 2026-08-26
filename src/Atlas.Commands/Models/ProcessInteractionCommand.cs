@@ -1,7 +1,6 @@
-﻿using Atlas.Abstractions.Commands;
-using Atlas.Abstractions.Interaction;
+﻿using Atlas.Commands.Interfaces;
 
-namespace Atlas.Core.Commands;
+namespace Atlas.Commands.Models;
 
 /// <summary>
 /// Represents a command to process an interaction with Atlas.

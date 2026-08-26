@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Commands;
+﻿namespace Atlas.Commands.Interfaces;
 
 /// <summary>
 /// Represents a dispatcher for executing commands within the Atlas framework.

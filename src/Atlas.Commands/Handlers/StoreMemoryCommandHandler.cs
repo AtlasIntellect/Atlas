@@ -1,7 +1,7 @@
-﻿using Atlas.Abstractions.Commands;
-using Atlas.Abstractions.Memory;
+﻿using Atlas.Commands.Interfaces;
+using Atlas.Commands.Models;
 
-namespace Atlas.Core.Commands;
+namespace Atlas.Commands.Handlers;
 
 /// <summary>
 /// 

@@ -1,4 +1,6 @@
-﻿namespace Atlas.Abstractions.Commands;
+﻿using Atlas.Commands.Interfaces;
+
+namespace Atlas.Commands.Models;
 
 /// <summary>
 /// Represents a command that can be dispatched within the Atlas framework.

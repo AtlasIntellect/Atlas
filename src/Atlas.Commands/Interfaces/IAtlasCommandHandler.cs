@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Commands;
+﻿namespace Atlas.Commands.Interfaces;
 
 /// <summary>
 /// Represents a handler for an Atlas command.

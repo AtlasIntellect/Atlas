@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Commands;
+﻿namespace Atlas.Commands.Models;
 
 /// <summary>
 /// Represents information about the current Atlas instance.

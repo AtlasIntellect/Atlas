@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Commands;
+﻿namespace Atlas.Commands.Interfaces;
 
 /// <summary>
 /// Represents the non-generic base contract for an Atlas command handler.
