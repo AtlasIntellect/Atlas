@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Atlas.Core\Atlas.Core.csproj" />
     <ProjectReference Include="..\Atlas.Abstractions\Atlas.Abstractions.csproj" />
     <ProjectReference Include="..\Atlas.Memory\Atlas.Memory.csproj" />
   </ItemGroup>
