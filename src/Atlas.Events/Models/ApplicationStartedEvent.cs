@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Events;
+﻿namespace Atlas.Events.Models;
 
 /// <summary>
 /// Represents an event that is published when the application has started.

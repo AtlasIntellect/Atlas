@@ -1,4 +1,6 @@
-﻿namespace Atlas.Abstractions.Events;
+﻿using Atlas.Events.Models;
+
+namespace Atlas.Events.Interfaces;
 
 /// <summary>
 /// Represents a dispatcher for publishing events within the Atlas framework.

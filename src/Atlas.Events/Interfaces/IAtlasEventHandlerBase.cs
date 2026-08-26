@@ -1,4 +1,6 @@
-﻿namespace Atlas.Abstractions.Events;
+﻿using Atlas.Events.Models;
+
+namespace Atlas.Events.Interfaces;
 
 /// <summary>
 /// Represents the non-generic contract for an Atlas event handler.

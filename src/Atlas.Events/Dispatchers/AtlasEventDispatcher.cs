@@ -1,6 +1,7 @@
-﻿using Atlas.Abstractions.Events;
+﻿using Atlas.Events.Interfaces;
+using Atlas.Events.Models;
 
-namespace Atlas.Core.Events;
+namespace Atlas.Events.Dispatchers;
 
 /// <summary>
 /// Represents a dispatcher for publishing events within the Atlas application.

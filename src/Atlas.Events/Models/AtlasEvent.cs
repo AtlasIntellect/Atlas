@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Events;
+﻿namespace Atlas.Events.Models;
 
 /// <summary>
 /// Represents an event that can be published and subscribed to within the Atlas framework.
