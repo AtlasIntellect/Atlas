@@ -1,6 +1,7 @@
-﻿using Atlas.Abstractions.Memory;
+﻿using Atlas.Memory.Interfaces;
+using Atlas.Memory.Models;
 
-namespace Atlas.Core.Memory;
+namespace Atlas.Memory.Interpretators;
 
 /// <summary>
 /// Provides the default implementation for interpreting memory content.

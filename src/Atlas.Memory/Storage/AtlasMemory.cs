@@ -1,6 +1,7 @@
-﻿using Atlas.Abstractions.Memory;
+﻿using Atlas.Memory.Interfaces;
+using Atlas.Memory.Models;
 
-namespace Atlas.Memory;
+namespace Atlas.Memory.Storage;
 
 /// <summary>
 /// Provides an in-memory implementation of <see cref="IAtlasMemory"/>.

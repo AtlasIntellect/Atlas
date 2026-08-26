@@ -1,6 +1,7 @@
 ﻿using Atlas.Abstractions.Interaction;
-using Atlas.Abstractions.Memory;
 using Atlas.Hosting.DependencyInjection;
+using Atlas.Memory.Interfaces;
+using Atlas.Memory.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

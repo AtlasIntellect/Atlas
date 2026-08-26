@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Memory;
+﻿namespace Atlas.Memory.Models;
 
 /// <summary>
 /// Defines the type of information represented by an Atlas memory.

@@ -2,16 +2,18 @@
 using Atlas.Abstractions.Configuration;
 using Atlas.Abstractions.Events;
 using Atlas.Abstractions.Interaction;
-using Atlas.Abstractions.Memory;
 using Atlas.Abstractions.Runtime;
 using Atlas.Core.Commands;
 using Atlas.Core.Events;
 using Atlas.Core.Interaction;
-using Atlas.Core.Memory;
 using Atlas.Core.Runtime;
 using Atlas.Hosting.Runtime;
 using Atlas.Hosting.Startup;
-using Atlas.Memory;
+using Atlas.Memory.Classifiers;
+using Atlas.Memory.Interfaces;
+using Atlas.Memory.Interpretators;
+using Atlas.Memory.Models;
+using Atlas.Memory.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

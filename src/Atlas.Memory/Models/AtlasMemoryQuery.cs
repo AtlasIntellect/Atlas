@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Memory;
+﻿namespace Atlas.Memory.Models;
 
 /// <summary>
 /// Represents optional criteria used when searching Atlas memories.

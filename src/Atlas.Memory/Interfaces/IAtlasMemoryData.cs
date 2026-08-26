@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Memory;
+﻿namespace Atlas.Memory.Interfaces;
 
 /// <summary>
 /// Represents structered semantic information asociated with an Atlas memory.

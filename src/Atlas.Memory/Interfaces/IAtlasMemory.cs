@@ -1,4 +1,6 @@
-﻿namespace Atlas.Abstractions.Memory;
+﻿using Atlas.Memory.Models;
+
+namespace Atlas.Memory.Interfaces;
 
 /// <summary>
 /// Provides access to Atlas memory.

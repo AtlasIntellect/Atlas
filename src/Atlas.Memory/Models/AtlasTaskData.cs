@@ -1,4 +1,6 @@
-﻿namespace Atlas.Abstractions.Memory;
+﻿using Atlas.Memory.Interfaces;
+
+namespace Atlas.Memory.Models;
 
 /// <summary>
 /// Represents structured information about an Atlas task.

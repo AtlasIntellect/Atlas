@@ -1,4 +1,6 @@
-﻿namespace Atlas.Abstractions.Memory;
+﻿using Atlas.Memory.Models;
+
+namespace Atlas.Memory.Interfaces;
 
 /// <summary>
 /// Classifies the type of a memory based on its content.

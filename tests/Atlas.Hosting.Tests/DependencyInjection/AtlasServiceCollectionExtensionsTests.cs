@@ -1,13 +1,13 @@
 ﻿using Atlas.Abstractions.Configuration;
 using Atlas.Abstractions.Events;
-using Atlas.Abstractions.Memory;
 using Atlas.Abstractions.Runtime;
 using Atlas.Core.Events;
 using Atlas.Core.Runtime;
 using Atlas.Hosting.DependencyInjection;
 using Atlas.Hosting.Runtime;
 using Atlas.Hosting.Startup;
-using Atlas.Memory;
+using Atlas.Memory.Interfaces;
+using Atlas.Memory.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

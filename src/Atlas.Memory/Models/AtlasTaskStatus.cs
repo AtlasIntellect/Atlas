@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Memory;
+﻿namespace Atlas.Memory.Models;
 
 /// <summary>
 /// Represents the current status of an Atlas task.
