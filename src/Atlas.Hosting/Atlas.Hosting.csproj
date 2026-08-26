@@ -25,7 +25,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Atlas.Abstractions\Atlas.Abstractions.csproj" />
+    <ProjectReference Include="..\Atlas.Commands\Atlas.Commands.csproj" />
+    <ProjectReference Include="..\Atlas.Events\Atlas.Events.csproj" />
     <ProjectReference Include="..\Atlas.Memory\Atlas.Memory.csproj" />
+    <ProjectReference Include="..\Atlas.Runtime\Atlas.Runtime.csproj" />
   </ItemGroup>
 
 </Project>

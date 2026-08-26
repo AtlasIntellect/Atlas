@@ -1,5 +1,7 @@
 ﻿using Atlas.Commands.Interfaces;
 using Atlas.Commands.Models;
+using Atlas.Interaction.Interfaces;
+using Atlas.Interaction.Models;
 
 namespace Atlas.Commands.Handlers;
 

@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\Atlas.Abstractions\Atlas.Abstractions.csproj" />
+    <ProjectReference Include="..\Atlas.Interaction\Atlas.Interaction.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Update="SonarAnalyzer.CSharp" Version="10.32.0.713" />
@@ -13,5 +14,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Search\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 </Project>

@@ -14,4 +14,7 @@
     <Folder Include="Providers\" />
     <Folder Include="Structered\" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
 </Project>
