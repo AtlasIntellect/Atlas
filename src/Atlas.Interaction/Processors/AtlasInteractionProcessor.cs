@@ -1,6 +1,7 @@
-﻿using Atlas.Abstractions.Interaction;
+﻿using Atlas.Interaction.Interfaces;
+using Atlas.Interaction.Models;
 
-namespace Atlas.Core.Interaction;
+namespace Atlas.Interaction.Processors;
 
 /// <summary>
 /// Provides the default implementation for processing Atlas interactions.

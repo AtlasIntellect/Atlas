@@ -1,6 +1,7 @@
-﻿using Atlas.Abstractions.Interaction;
+﻿using Atlas.Interaction.Interfaces;
+using Atlas.Interaction.Models;
 
-namespace Atlas.Core.Interaction;
+namespace Atlas.Interaction.Interpretators;
 
 /// <summary>
 /// Provides functionality to interpret <see cref="AtlasInteraction"/> instances into structured representations

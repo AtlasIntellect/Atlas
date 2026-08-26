@@ -1,4 +1,6 @@
-﻿namespace Atlas.Abstractions.Interaction;
+﻿using Atlas.Interaction.Models;
+
+namespace Atlas.Interaction.Interfaces;
 
 /// <summary>
 /// Detects the intent of an Atlas interaction.

@@ -1,4 +1,6 @@
-﻿namespace Atlas.Abstractions.Interaction;
+﻿using Atlas.Interaction.Models;
+
+namespace Atlas.Interaction.Interfaces;
 
 /// <summary>
 /// Defines a contract for extracting memory content from an

@@ -1,4 +1,7 @@
-﻿namespace Atlas.Abstractions.Interaction;
+﻿using Atlas.Interaction.Interfaces;
+using Atlas.Interaction.Models;
+
+namespace Atlas.Interaction.Extractors;
 
 /// <summary>
 /// Provides the default implementation for extracting queries from Atlas interactions.

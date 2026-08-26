@@ -1,6 +1,6 @@
-﻿using Atlas.Abstractions.Memory;
+﻿using Atlas.Interaction.Models;
 
-namespace Atlas.Abstractions.Interaction;
+namespace Atlas.Interaction.Interfaces;
 
 /// <summary>
 /// Defines a contract for formatting memory search results into Atlas responses.

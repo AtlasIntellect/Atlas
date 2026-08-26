@@ -1,4 +1,6 @@
-﻿namespace Atlas.Abstractions.Interaction;
+﻿using Atlas.Interaction.Models;
+
+namespace Atlas.Interaction.Interfaces;
 
 /// <summary>
 /// Defines a service capable of processing interactions with Atlas.

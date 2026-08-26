@@ -1,9 +1,7 @@
-﻿using Atlas.Abstractions.Commands;
-using Atlas.Abstractions.Interaction;
-using Atlas.Abstractions.Memory;
-using Atlas.Core.Commands;
+﻿using Atlas.Interaction.Interfaces;
+using Atlas.Interaction.Models;
 
-namespace Atlas.Core.Interaction;
+namespace Atlas.Interaction.Handlers;
 
 /// <summary>
 /// Handles interactions that request storing a memory.

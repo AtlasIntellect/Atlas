@@ -1,7 +1,7 @@
-﻿using Atlas.Abstractions.Interaction;
-using Atlas.Abstractions.Memory;
+﻿using Atlas.Interaction.Interfaces;
+using Atlas.Interaction.Models;
 
-namespace Atlas.Core.Interaction;
+namespace Atlas.Interaction.Formatters;
 
 /// <summary>
 /// Provides the default implementation for formatting memory search results.

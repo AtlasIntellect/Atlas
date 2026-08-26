@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Interaction;
+﻿namespace Atlas.Interaction.Models;
 
 /// <summary>
 /// Represents the intent identified for an Atlas interaction.

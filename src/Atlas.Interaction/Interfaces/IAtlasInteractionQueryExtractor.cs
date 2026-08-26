@@ -1,4 +1,6 @@
-﻿namespace Atlas.Abstractions.Interaction;
+﻿using Atlas.Interaction.Models;
+
+namespace Atlas.Interaction.Interfaces;
 
 /// <summary>
 /// Defines a contract for extracting query strings from instances of <see cref="AtlasInteraction"/>.
