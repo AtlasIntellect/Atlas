@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Atlas.Abstractions\Atlas.Abstractions.csproj" />
+    <ProjectReference Include="..\Atlas.Commands\Atlas.Commands.csproj" />
+    <ProjectReference Include="..\Atlas.Memory\Atlas.Memory.csproj" />
+    <ProjectReference Include="..\Atlas.Runtime\Atlas.Runtime.csproj" />
+  </ItemGroup>
+</Project>

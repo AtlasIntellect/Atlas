@@ -1,8 +1,12 @@
-﻿using Atlas.Abstractions.Commands;
-using Atlas.Abstractions.Interaction;
-using Atlas.Abstractions.Memory;
-using Atlas.Core.Commands;
+﻿using Atlas.Commands.Dispatchers;
+using Atlas.Commands.Interfaces;
 using Atlas.Hosting.DependencyInjection;
+using Atlas.Interaction.Commands;
+using Atlas.Interaction.Models;
+using Atlas.Memory.Commands;
+using Atlas.Memory.Models;
+using Atlas.Runtime.Commands;
+using Atlas.Runtime.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Xunit;

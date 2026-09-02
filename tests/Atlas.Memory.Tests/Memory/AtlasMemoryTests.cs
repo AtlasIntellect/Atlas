@@ -1,4 +1,5 @@
-﻿using Atlas.Abstractions.Memory;
+﻿using Atlas.Memory.Models;
+using Atlas.Memory.Storage;
 using Xunit;
 
 namespace Atlas.Memory.Tests.Memory;

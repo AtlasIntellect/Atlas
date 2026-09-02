@@ -12,17 +12,22 @@
     <Project Path="src/Atlas.Abstractions/Atlas.Abstractions.csproj" />
     <Project Path="src/Atlas.AI/Atlas.AI.csproj" />
     <Project Path="src/Atlas.Api/Atlas.Api.csproj" />
+    <Project Path="src/Atlas.Commands/Atlas.Commands.csproj" />
     <Project Path="src/Atlas.Contracts/Atlas.Contracts.csproj" />
-    <Project Path="src/Atlas.Core/Atlas.Core.csproj" />
     <Project Path="src/Atlas.Desktop/Atlas.Desktop.csproj" />
+    <Project Path="src/Atlas.Events/Atlas.Events.csproj" />
     <Project Path="src/Atlas.Hosting/Atlas.Hosting.csproj" />
+    <Project Path="src/Atlas.Interaction/Atlas.Interaction.csproj" />
     <Project Path="src/Atlas.Memory/Atlas.Memory.csproj" />
     <Project Path="src/Atlas.PluginFramework/Atlas.PluginFramework.csproj" />
+    <Project Path="src/Atlas.Runtime/Atlas.Runtime.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/Atlas.Abstractions.Tests/Atlas.Abstractions.Tests.csproj" Id="bcbc298b-64e9-49ea-8b77-902efe3d8d09" />
-    <Project Path="tests/Atlas.Core.Tests/Atlas.Core.Tests.csproj" Id="70dcf308-eefe-486d-8f1b-46534578f794" />
+    <Project Path="tests/Atlas.Commands.Tests/Atlas.Commands.Tests.csproj" Id="1fa1fba6-cda6-4e6a-a84e-8e43cfb07cc6" />
+    <Project Path="tests/Atlas.Events.Tests/Atlas.Events.Tests.csproj" Id="e590f14b-551f-4c86-9203-a0d7cdb13b76" />
     <Project Path="tests/Atlas.Hosting.Tests/Atlas.Hosting.Tests.csproj" Id="ebc57050-2353-4ae7-a857-f67185a61e53" />
+    <Project Path="tests/Atlas.Interaction.Tests/Atlas.Interaction.Tests.csproj" Id="d8ee0e8d-2c0d-4f0c-8ebd-55beeb2e7ce0" />
     <Project Path="tests/Atlas.Memory.Tests/Atlas.Memory.Tests.csproj" Id="6f2b2dc3-7c3a-4d4d-b248-65000e3758c7" />
+    <Project Path="tests/Atlas.Runtime.Tests/Atlas.Runtime.Tests.csproj" Id="8a401560-1d4f-4ac7-8a9c-d62baf8b2f20" />
   </Folder>
 </Solution>

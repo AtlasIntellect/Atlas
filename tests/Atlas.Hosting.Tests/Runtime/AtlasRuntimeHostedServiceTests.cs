@@ -1,5 +1,5 @@
-﻿using Atlas.Abstractions.Runtime;
-using Atlas.Hosting.Runtime;
+﻿using Atlas.Hosting.Runtime;
+using Atlas.Runtime.Interfaces;
 using Xunit;
 
 namespace Atlas.Hosting.Tests.Runtime;

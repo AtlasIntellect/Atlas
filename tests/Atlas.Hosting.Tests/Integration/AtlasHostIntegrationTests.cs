@@ -1,5 +1,5 @@
-﻿using Atlas.Abstractions.Runtime;
-using Atlas.Hosting.DependencyInjection;
+﻿using Atlas.Hosting.DependencyInjection;
+using Atlas.Runtime.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Xunit;

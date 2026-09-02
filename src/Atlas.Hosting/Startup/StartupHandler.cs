@@ -1,5 +1,6 @@
 ﻿using Atlas.Abstractions.Configuration;
-using Atlas.Abstractions.Events;
+using Atlas.Events.Interfaces;
+using Atlas.Events.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
