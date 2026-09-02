@@ -1,5 +1,8 @@
-﻿using Atlas.Interaction.Interfaces;
+﻿using Atlas.Commands.Interfaces;
+using Atlas.Interaction.Interfaces;
 using Atlas.Interaction.Models;
+using Atlas.Memory.Commands;
+using Atlas.Memory.Models;
 
 namespace Atlas.Interaction.Handlers;
 
@@ -7,8 +10,7 @@ namespace Atlas.Interaction.Handlers;
 /// Handles interactions that request a memory search.
 /// </summary>
 public sealed class SearchMemoryInteractionHandler(
-    IAtlasCommandDispatcher commandDispatcher,
-    IAtlasMemorySearchResponseFormatter responseFormatter)
+    IAtlasCommandDispatcher commandDispatcher)
     : IAtlasInteractionHandler
 {
     /// <inheritdoc/>
@@ -33,6 +35,13 @@ public sealed class SearchMemoryInteractionHandler(
                 new SearchMemoryCommand(query),
                 cancellationToken);
 
-        return responseFormatter.Format(memories);
+        return new AtlasResponse
+        {
+            Content = memories.Count == 0
+                ? "I couldn't find any matching memories."
+                : string.Join(
+                    Environment.NewLine,
+                    memories.Select(memory => memory.Content))
+        };
     }
 }

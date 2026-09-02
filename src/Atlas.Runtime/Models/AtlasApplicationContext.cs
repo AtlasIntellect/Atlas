@@ -1,8 +1,8 @@
 ﻿using Atlas.Abstractions.Configuration;
-using Atlas.Abstractions.Runtime;
+using Atlas.Runtime.Interfaces;
 using Microsoft.Extensions.Options;
 
-namespace Atlas.Core.Runtime;
+namespace Atlas.Runtime.Models;
 
 /// <inheritdoc/>
 public sealed class AtlasApplicationContext(

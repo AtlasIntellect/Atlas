@@ -1,7 +1,8 @@
-﻿using Atlas.Abstractions.Events;
-using Atlas.Abstractions.Runtime;
+﻿using Atlas.Events.Interfaces;
+using Atlas.Events.Models;
+using Atlas.Runtime.Interfaces;
 
-namespace Atlas.Core.Runtime;
+namespace Atlas.Runtime;
 
 /// <inheritdoc/>
 public sealed class AtlasRuntime(

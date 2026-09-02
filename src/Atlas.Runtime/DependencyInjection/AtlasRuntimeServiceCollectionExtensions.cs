@@ -1,5 +1,8 @@
-﻿using Atlas.Abstractions.Runtime;
-using Atlas.Core.Runtime;
+﻿using Atlas.Commands.Interfaces;
+using Atlas.Runtime.Commands;
+using Atlas.Runtime.Handlers;
+using Atlas.Runtime.Interfaces;
+using Atlas.Runtime.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Atlas.Runtime.DependencyInjection;
@@ -19,7 +22,15 @@ public static class AtlasRuntimeServiceCollectionExtensions
             .AddSingleton<IAtlasRuntime, AtlasRuntime>()
             .AddSingleton<
                 IAtlasApplicationContext,
-                AtlasApplicationContext>();
+                AtlasApplicationContext>()
+            .AddSingleton<GetAtlasInfoCommandHandler>()
+            .AddSingleton<
+                IAtlasCommandHandler<GetAtlasInfoCommand, AtlasInfo>>(
+                provider =>
+                    provider.GetRequiredService<GetAtlasInfoCommandHandler>())
+            .AddSingleton<IAtlasCommandHandlerBase>(
+                provider =>
+                    provider.GetRequiredService<GetAtlasInfoCommandHandler>());
 
         return services;
     }

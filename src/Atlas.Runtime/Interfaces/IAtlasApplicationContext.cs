@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Runtime;
+﻿namespace Atlas.Runtime.Interfaces;
 
 /// <summary>
 /// Represents the current application context of an Atlas instance.

@@ -2,8 +2,4 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Atlas.Interaction\Atlas.Interaction.csproj" />
-    <ProjectReference Include="..\Atlas.Memory\Atlas.Memory.csproj" />
-  </ItemGroup>
 </Project>

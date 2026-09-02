@@ -1,5 +1,9 @@
-﻿using Atlas.Interaction.Interfaces;
+﻿using Atlas.Commands.Interfaces;
+using Atlas.Interaction.Interfaces;
 using Atlas.Interaction.Models;
+using Atlas.Memory.Commands;
+using Atlas.Memory.Interfaces;
+using Atlas.Memory.Models;
 
 namespace Atlas.Interaction.Handlers;
 

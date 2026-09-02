@@ -1,13 +1,13 @@
 ﻿using Atlas.Abstractions.Configuration;
-using Atlas.Abstractions.Events;
-using Atlas.Abstractions.Runtime;
-using Atlas.Core.Events;
-using Atlas.Core.Runtime;
+using Atlas.Events.Dispatchers;
+using Atlas.Events.Interfaces;
 using Atlas.Hosting.DependencyInjection;
 using Atlas.Hosting.Runtime;
 using Atlas.Hosting.Startup;
 using Atlas.Memory.Interfaces;
 using Atlas.Memory.Storage;
+using Atlas.Runtime;
+using Atlas.Runtime.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -98,7 +98,8 @@ public sealed class AtlasServiceCollectionExtensionsTests
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 { "Atlas:Name", "TestAtlas" }
-            }).Build();
+            })
+            .Build();
 
         var services = new ServiceCollection();
 

@@ -1,8 +1,10 @@
-﻿using Atlas.Interaction.Formatters;
-using Atlas.Interaction.Interfaces;
+﻿using Atlas.Commands.Interfaces;
 using Atlas.Memory.Classifiers;
+using Atlas.Memory.Commands;
+using Atlas.Memory.Handlers;
 using Atlas.Memory.Interfaces;
-using Atlas.Memory.Interpretators;
+using Atlas.Memory.Interpreters;
+using Atlas.Memory.Models;
 using Atlas.Memory.Storage;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,14 +24,34 @@ public static class AtlasMemoryServiceCollectionExtensions
         services
             .AddSingleton<IAtlasMemory, AtlasMemory>()
             .AddSingleton<
-                IAtlasMemorySearchResponseFormatter,
-                AtlasMemorySearchResponseFormatter>()
-            .AddSingleton<
                 IAtlasMemoryTypeClassifier,
                 AtlasMemoryTypeClassifier>()
             .AddSingleton<
                 IAtlasMemoryInterpreter,
-                AtlasMemoryInterpreter>();
+                AtlasMemoryInterpreter>()
+            .AddSingleton<StoreMemoryCommandHandler>()
+            .AddSingleton<IAtlasCommandHandler<StoreMemoryCommand, AtlasMemoryEntry>>(
+                provider =>
+                    provider.GetRequiredService<StoreMemoryCommandHandler>())
+            .AddSingleton<IAtlasCommandHandlerBase>(
+                provider =>
+                    provider.GetRequiredService<StoreMemoryCommandHandler>())
+            .AddSingleton<GetMemoryCommandHandler>()
+            .AddSingleton<IAtlasCommandHandler<GetMemoryCommand, AtlasMemoryEntry?>>(
+                provider =>
+                    provider.GetRequiredService<GetMemoryCommandHandler>())
+            .AddSingleton<IAtlasCommandHandlerBase>(
+                provider =>
+                    provider.GetRequiredService<GetMemoryCommandHandler>())
+            .AddSingleton<SearchMemoryCommandHandler>()
+            .AddSingleton<IAtlasCommandHandler<
+                SearchMemoryCommand,
+                IReadOnlyList<AtlasMemoryEntry>>>(
+                provider =>
+                    provider.GetRequiredService<SearchMemoryCommandHandler>())
+            .AddSingleton<IAtlasCommandHandlerBase>(
+                provider =>
+                    provider.GetRequiredService<SearchMemoryCommandHandler>());
 
         return services;
     }

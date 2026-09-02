@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.Runtime;
+﻿namespace Atlas.Runtime.Interfaces;
 
 /// <summary>
 /// Defines the interface for the Atlas runtime, which provides core functionality and services for the Atlas framework.

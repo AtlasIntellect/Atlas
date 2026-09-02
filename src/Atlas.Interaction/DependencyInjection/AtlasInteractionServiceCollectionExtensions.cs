@@ -1,9 +1,15 @@
-﻿using Atlas.Interaction.Detectors;
+﻿using Atlas.Commands.Interfaces;
+using Atlas.Interaction.Commands;
+using Atlas.Interaction.Detectors;
 using Atlas.Interaction.Extractors;
 using Atlas.Interaction.Handlers;
 using Atlas.Interaction.Interfaces;
-using Atlas.Interaction.Interpretators;
+using Atlas.Interaction.Interpreters;
+using Atlas.Interaction.Models;
 using Atlas.Interaction.Processors;
+using Atlas.Runtime.Commands;
+using Atlas.Runtime.Handlers;
+using Atlas.Runtime.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Atlas.Interaction.DependencyInjection;
@@ -43,7 +49,15 @@ public static class AtlasInteractionServiceCollectionExtensions
                 AtlasInteractionMemoryContentExtractor>()
             .AddSingleton<
                 IAtlasInteractionInterpreter,
-                AtlasInteractionInterpreter>();
+                AtlasInteractionInterpreter>()
+            .AddSingleton<ProcessInteractionCommandHandler>()
+            .AddSingleton<
+                IAtlasCommandHandler<ProcessInteractionCommand, AtlasResponse>>(
+                provider =>
+                    provider.GetRequiredService<ProcessInteractionCommandHandler>())
+            .AddSingleton<IAtlasCommandHandlerBase>(
+                provider =>
+                    provider.GetRequiredService<ProcessInteractionCommandHandler>());
 
         return services;
     }

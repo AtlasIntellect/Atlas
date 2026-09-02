@@ -1,4 +1,5 @@
 ﻿using Atlas.Commands.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Atlas.Commands.Dispatchers;
 
