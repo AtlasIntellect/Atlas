@@ -1,7 +1,8 @@
-﻿using Atlas.Abstractions.AI;
+﻿using Atlas.AI.Models;
+using Atlas.AI.Tests.TestImplementations;
 using Xunit;
 
-namespace Atlas.Core.Tests.AI;
+namespace Atlas.AI.Tests;
 
 /// <summary>
 /// Provides unit tests for the test language model implementation.

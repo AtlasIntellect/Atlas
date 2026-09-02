@@ -1,4 +1,6 @@
-﻿namespace Atlas.Abstractions.AI;
+﻿using Atlas.AI.Structured;
+
+namespace Atlas.AI.Interfaces;
 
 /// <summary>
 /// Defines a language model capable of producing structured responses.

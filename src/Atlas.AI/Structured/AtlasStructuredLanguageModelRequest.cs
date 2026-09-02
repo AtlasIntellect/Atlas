@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.AI;
+﻿namespace Atlas.AI.Structured;
 
 /// <summary>
 /// Represents a request for structured output from a language model.

@@ -1,4 +1,5 @@
-﻿using Atlas.Commands.DependencyInjection;
+﻿using Atlas.AI.DependencyInjection;
+using Atlas.Commands.DependencyInjection;
 using Atlas.Events.DependencyInjection;
 using Atlas.Interaction.DependencyInjection;
 using Atlas.Memory.DependencyInjection;
@@ -26,7 +27,8 @@ public static class AtlasServiceCollectionExtensions
             .AddAtlasMemory()
             .AddAtlasInteraction()
             .AddAtlasRuntime()
-            .AddAtlasHosting(configuration);
+            .AddAtlasHosting(configuration)
+            .AddAtlasAi();
 
         return services;
     }

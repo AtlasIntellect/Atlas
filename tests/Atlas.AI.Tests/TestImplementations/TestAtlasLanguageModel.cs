@@ -1,6 +1,7 @@
-﻿using Atlas.Abstractions.AI;
+﻿using Atlas.AI.Interfaces;
+using Atlas.AI.Models;
 
-namespace Atlas.Core.Tests.AI;
+namespace Atlas.AI.Tests.TestImplementations;
 
 /// <summary>
 /// Provides a deterministic language model implementation for testing.

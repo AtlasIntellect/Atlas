@@ -1,4 +1,4 @@
-﻿namespace Atlas.Abstractions.AI;
+﻿namespace Atlas.AI.Models;
 
 /// <summary>
 /// Represents a response returned by an Atlas language model.

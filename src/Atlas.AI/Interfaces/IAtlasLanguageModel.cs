@@ -1,4 +1,6 @@
-﻿namespace Atlas.Abstractions.AI;
+﻿using Atlas.AI.Models;
+
+namespace Atlas.AI.Interfaces;
 
 /// <summary>
 /// Defines a language model that Atlas can use for language generation and understanding.
