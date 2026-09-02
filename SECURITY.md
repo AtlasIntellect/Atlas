@@ -1,11 +1,9 @@
 # Security Policy
 
 ## Reporting a Vulnerability
-
 We take the security of this project seriously. If you discover a security vulnerability, please report it responsibly.
 
 ### How to Report
-
 **For security vulnerabilities, please DO NOT open a public issue.**
 
 Instead, please report security vulnerabilities through one of the following methods:
@@ -20,7 +18,6 @@ Instead, please report security vulnerabilities through one of the following met
    - Include "SECURITY" in the subject line
 
 ### What to Include
-
 Please include the following information in your report:
 - Description of the vulnerability
 - Steps to reproduce the issue
@@ -28,21 +25,18 @@ Please include the following information in your report:
 - Suggested fix (if you have one)
 
 ### Response Timeline
-
 - We will acknowledge receipt of your report within 48 hours
 - We will provide a detailed response within 7 days
 - We will keep you informed of our progress
 - We will credit you in the fix announcement (unless you prefer to remain anonymous)
 
 ## Supported Versions
-
 | Version | Supported          |
 | ------- | ------------------ |
 | latest  | ✅ Yes             |
 | older   | ❌ No              |
 
 ## Security Features
-
 This repository has the following security features enabled:
 
 - ✅ Branch Protection
@@ -52,7 +46,6 @@ This repository has the following security features enabled:
 - ✅ Code Scanning (CodeQL) including Actions workflow security
 
 ## Security Best Practices
-
 When contributing to this project:
 - Never commit secrets (API keys, passwords, tokens)
 - Keep dependencies up to date
@@ -60,7 +53,6 @@ When contributing to this project:
 - Review Dependabot alerts and PRs promptly
 
 ## Questions?
-
 If you have questions about this security policy, please open a discussion or contact the maintainers.
 
 ---
