@@ -1,4 +1,4 @@
-﻿using Atlas.Abstractions.Runtime;
+﻿using Atlas.Runtime.Interfaces;
 using Microsoft.Extensions.Hosting;
 
 namespace Atlas.Hosting.Runtime;
