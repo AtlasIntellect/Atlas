@@ -23,6 +23,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\Atlas.Interaction\Atlas.Interaction.csproj" />
+      <ProjectReference Include="..\Atlas.AI.Tests\Atlas.AI.Tests.csproj" />
     </ItemGroup>
 
     <ItemGroup>

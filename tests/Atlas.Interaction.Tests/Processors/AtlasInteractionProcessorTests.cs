@@ -16,38 +16,50 @@ public sealed class AtlasInteractionProcessorTests
     [Fact]
     public async Task ProcessAsync_Should_InvokeMatchingHandler()
     {
-        var handler = new TestInteractionHandler(
-            AtlasInteractionIntent.SearchMemory);
+        var handler =
+            new TestInteractionHandler
+            {
+                Intent = AtlasInteractionIntent.SearchMemory
+            };
 
         var handlers = new[]
         {
             handler
         };
 
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                AtlasInteractionIntent.SearchMemory,
+                "camera",
+                null);
+
         var interactionInterpreter =
             new TestInteractionInterpreter
             {
-                Interpretation =
-                    new AtlasInteractionInterpretation(
-                        AtlasInteractionIntent.SearchMemory,
-                        "camera",
-                        null)
+                InterpretationResult =
+                    new AtlasInteractionInterpretationResult(
+                        interpretation,
+                        AtlasInteractionConfidence.High,
+                        false)
             };
 
-        var processor = new AtlasInteractionProcessor(
-            interactionInterpreter,
-            handlers);
+        var processor =
+            new AtlasInteractionProcessor(
+                interactionInterpreter,
+                handlers);
 
-        var interaction = new AtlasInteraction
-        {
-            Input = "What camera do I have?"
-        };
+        var interaction =
+            new AtlasInteraction
+            {
+                Input = "What camera do I have?"
+            };
 
         await processor.ProcessAsync(
             interaction,
             TestContext.Current.CancellationToken);
 
-        Assert.True(handler.WasCalled);
+        Assert.True(
+            handler.WasCalled);
     }
 
     /// <summary>
@@ -56,45 +68,51 @@ public sealed class AtlasInteractionProcessorTests
     [Fact]
     public async Task ProcessAsync_Should_ReturnHandlerResponse()
     {
-        var handler = new TestInteractionHandler(
-            AtlasInteractionIntent.SearchMemory)
-        {
-            Response = new AtlasResponse
+        var handler =
+            new TestInteractionHandler
             {
-                Content = "Test handler response."
-            }
-        };
+                Intent = AtlasInteractionIntent.SearchMemory
+            };
 
         var handlers = new[]
         {
             handler
         };
 
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                AtlasInteractionIntent.SearchMemory,
+                "camera",
+                null);
+
         var interactionInterpreter =
             new TestInteractionInterpreter
             {
-                Interpretation =
-                    new AtlasInteractionInterpretation(
-                        AtlasInteractionIntent.SearchMemory,
-                        "camera",
-                        null)
+                InterpretationResult =
+                    new AtlasInteractionInterpretationResult(
+                        interpretation,
+                        AtlasInteractionConfidence.High,
+                        false)
             };
 
-        var processor = new AtlasInteractionProcessor(
-            interactionInterpreter,
-            handlers);
+        var processor =
+            new AtlasInteractionProcessor(
+                interactionInterpreter,
+                handlers);
 
-        var interaction = new AtlasInteraction
-        {
-            Input = "What camera do I have?"
-        };
+        var interaction =
+            new AtlasInteraction
+            {
+                Input = "What camera do I have?"
+            };
 
-        var response = await processor.ProcessAsync(
-            interaction,
-            TestContext.Current.CancellationToken);
+        var response =
+            await processor.ProcessAsync(
+                interaction,
+                TestContext.Current.CancellationToken);
 
         Assert.Equal(
-            "Test handler response.",
+            "Handler response",
             response.Content);
     }
 
@@ -105,11 +123,17 @@ public sealed class AtlasInteractionProcessorTests
     [Fact]
     public async Task ProcessAsync_Should_SelectHandlerMatchingIntent()
     {
-        var unrelatedHandler = new TestInteractionHandler(
-            AtlasInteractionIntent.StoreMemory);
+        var unrelatedHandler =
+            new TestInteractionHandler
+            {
+                Intent = AtlasInteractionIntent.StoreMemory
+            };
 
-        var searchHandler = new TestInteractionHandler(
-            AtlasInteractionIntent.SearchMemory);
+        var searchHandler =
+            new TestInteractionHandler
+            {
+                Intent = AtlasInteractionIntent.SearchMemory
+            };
 
         var handlers = new[]
         {
@@ -117,49 +141,66 @@ public sealed class AtlasInteractionProcessorTests
             searchHandler
         };
 
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                AtlasInteractionIntent.SearchMemory,
+                "camera",
+                null);
+
         var interactionInterpreter =
             new TestInteractionInterpreter
             {
-                Interpretation =
-                    new AtlasInteractionInterpretation(
-                        AtlasInteractionIntent.SearchMemory,
-                        "camera",
-                        null)
+                InterpretationResult =
+                    new AtlasInteractionInterpretationResult(
+                        interpretation,
+                        AtlasInteractionConfidence.High,
+                        false)
             };
 
-        var processor = new AtlasInteractionProcessor(
-            interactionInterpreter,
-            handlers);
+        var processor =
+            new AtlasInteractionProcessor(
+                interactionInterpreter,
+                handlers);
 
-        var interaction = new AtlasInteraction
-        {
-            Input = "What camera do I have?"
-        };
+        var interaction =
+            new AtlasInteraction
+            {
+                Input = "What camera do I have?"
+            };
 
         await processor.ProcessAsync(
             interaction,
             TestContext.Current.CancellationToken);
 
-        Assert.False(unrelatedHandler.WasCalled);
-        Assert.True(searchHandler.WasCalled);
+        Assert.False(
+            unrelatedHandler.WasCalled);
+
+        Assert.True(
+            searchHandler.WasCalled);
     }
 
     /// <summary>
     /// Ensures that the <see cref="AtlasInteractionProcessor.ProcessAsync"/> method
     /// throws an <see cref="InvalidOperationException"/> when no handler is registered
-    /// for the detected intent.
+    /// for the interpreted intent.
     /// </summary>
     [Fact]
     public async Task ProcessAsync_Should_Throw_WhenNoHandlerExists()
     {
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                AtlasInteractionIntent.SearchMemory,
+                "camera",
+                null);
+
         var interactionInterpreter =
             new TestInteractionInterpreter
             {
-                Interpretation =
-                    new AtlasInteractionInterpretation(
-                        AtlasInteractionIntent.Unknown,
-                        null,
-                        null)
+                InterpretationResult =
+                    new AtlasInteractionInterpretationResult(
+                        interpretation,
+                        AtlasInteractionConfidence.High,
+                        false)
             };
 
         var processor =
@@ -167,10 +208,11 @@ public sealed class AtlasInteractionProcessorTests
                 interactionInterpreter,
                 []);
 
-        var interaction = new AtlasInteraction
-        {
-            Input = "Hello Atlas"
-        };
+        var interaction =
+            new AtlasInteraction
+            {
+                Input = "What camera do I have?"
+            };
 
         var exception =
             await Assert.ThrowsAsync<InvalidOperationException>(
@@ -189,37 +231,49 @@ public sealed class AtlasInteractionProcessorTests
     [Fact]
     public async Task ProcessAsync_Should_PassCancellationToken_ToHandler()
     {
-        var handler = new TestInteractionHandler(
-            AtlasInteractionIntent.SearchMemory);
+        var handler =
+            new TestInteractionHandler
+            {
+                Intent = AtlasInteractionIntent.SearchMemory
+            };
 
         var handlers = new[]
         {
             handler
         };
 
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                AtlasInteractionIntent.SearchMemory,
+                "camera",
+                null);
+
         var interactionInterpreter =
             new TestInteractionInterpreter
             {
-                Interpretation =
-                    new AtlasInteractionInterpretation(
-                        AtlasInteractionIntent.SearchMemory,
-                        "camera",
-                        null)
+                InterpretationResult =
+                    new AtlasInteractionInterpretationResult(
+                        interpretation,
+                        AtlasInteractionConfidence.High,
+                        false)
             };
 
-        var processor = new AtlasInteractionProcessor(
-            interactionInterpreter,
-            handlers);
+        var processor =
+            new AtlasInteractionProcessor(
+                interactionInterpreter,
+                handlers);
 
-        using var cancellationTokenSource = new CancellationTokenSource();
+        using var cancellationTokenSource =
+            new CancellationTokenSource();
 
         var cancellationToken =
             cancellationTokenSource.Token;
 
-        var interaction = new AtlasInteraction
-        {
-            Input = "What camera do I have?"
-        };
+        var interaction =
+            new AtlasInteraction
+            {
+                Input = "What camera do I have?"
+            };
 
         await processor.ProcessAsync(
             interaction,
@@ -236,34 +290,46 @@ public sealed class AtlasInteractionProcessorTests
     [Fact]
     public async Task ProcessAsync_Should_Throw_WhenCancellationRequested()
     {
-        var handler = new TestInteractionHandler(
-            AtlasInteractionIntent.SearchMemory);
+        var handler =
+            new TestInteractionHandler
+            {
+                Intent = AtlasInteractionIntent.SearchMemory
+            };
 
         var handlers = new[]
         {
             handler
         };
 
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                AtlasInteractionIntent.SearchMemory,
+                "camera",
+                null);
+
         var interactionInterpreter =
             new TestInteractionInterpreter
             {
-                Interpretation =
-                    new AtlasInteractionInterpretation(
-                        AtlasInteractionIntent.SearchMemory,
-                        "camera",
-                        null)
+                InterpretationResult =
+                    new AtlasInteractionInterpretationResult(
+                        interpretation,
+                        AtlasInteractionConfidence.High,
+                        false)
             };
 
-        var processor = new AtlasInteractionProcessor(
-            interactionInterpreter,
-            handlers);
+        var processor =
+            new AtlasInteractionProcessor(
+                interactionInterpreter,
+                handlers);
 
-        var interaction = new AtlasInteraction
-        {
-            Input = "What camera do I have?"
-        };
+        var interaction =
+            new AtlasInteraction
+            {
+                Input = "What camera do I have?"
+            };
 
-        using var cancellationTokenSource = new CancellationTokenSource();
+        using var cancellationTokenSource =
+            new CancellationTokenSource();
 
         await cancellationTokenSource.CancelAsync();
 
@@ -288,22 +354,29 @@ public sealed class AtlasInteractionProcessorTests
         var interactionInterpreter =
             new TestInteractionInterpreter
             {
-                Interpretation = interpretation
+                InterpretationResult =
+                    new AtlasInteractionInterpretationResult(
+                        interpretation,
+                        AtlasInteractionConfidence.High,
+                        false)
             };
 
         var handler =
-            new TestInteractionHandler(
-                AtlasInteractionIntent.SearchMemory);
+            new TestInteractionHandler
+            {
+                Intent = AtlasInteractionIntent.SearchMemory
+            };
 
         var processor =
             new AtlasInteractionProcessor(
                 interactionInterpreter,
                 [handler]);
 
-        var interaction = new AtlasInteraction
-        {
-            Input = "What camera do I have?"
-        };
+        var interaction =
+            new AtlasInteraction
+            {
+                Input = "What camera do I have?"
+            };
 
         await processor.ProcessAsync(
             interaction,
@@ -314,23 +387,141 @@ public sealed class AtlasInteractionProcessorTests
             handler.ReceivedInterpretation);
     }
 
-    private sealed class TestInteractionHandler(
-        AtlasInteractionIntent intent)
+    /// <summary>
+    /// Verifies that the processor returns a clarification response when the interpretation is ambiguous.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_Should_ReturnClarificationResponse_WhenInterpretationIsAmbiguous()
+    {
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                AtlasInteractionIntent.SearchMemory,
+                "camera",
+                null);
+
+        var interpretationResult =
+            new AtlasInteractionInterpretationResult(
+                interpretation,
+                AtlasInteractionConfidence.Medium,
+                true);
+
+        var interpreter =
+            new TestInteractionInterpreter
+            {
+                InterpretationResult = interpretationResult
+            };
+
+        var handler =
+            new TestInteractionHandler
+            {
+                Intent = AtlasInteractionIntent.SearchMemory
+            };
+
+        var processor =
+            new AtlasInteractionProcessor(
+                interpreter,
+                [handler]);
+
+        var response =
+            await processor.ProcessAsync(
+                new AtlasInteraction
+                {
+                    Input = "What camera?"
+                },
+                TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            "I'm not quite sure what you mean. Could you clarify?",
+            response.Content);
+
+        Assert.False(
+            handler.WasCalled);
+    }
+
+    /// <summary>
+    /// Verifies that the processor invokes the handler when the interpretation is not ambiguous.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_Should_InvokeHandler_WhenInterpretationIsNotAmbiguous()
+    {
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                AtlasInteractionIntent.SearchMemory,
+                "camera",
+                null);
+
+        var interpretationResult =
+            new AtlasInteractionInterpretationResult(
+                interpretation,
+                AtlasInteractionConfidence.High,
+                false);
+
+        var interpreter =
+            new TestInteractionInterpreter
+            {
+                InterpretationResult = interpretationResult
+            };
+
+        var handler =
+            new TestInteractionHandler
+            {
+                Intent = AtlasInteractionIntent.SearchMemory
+            };
+
+        var processor =
+            new AtlasInteractionProcessor(
+                interpreter,
+                [handler]);
+
+        var response =
+            await processor.ProcessAsync(
+                new AtlasInteraction
+                {
+                    Input = "What camera do I have?"
+                },
+                TestContext.Current.CancellationToken);
+
+        Assert.True(
+            handler.WasCalled);
+
+        Assert.Equal(
+            "Handler response",
+            response.Content);
+    }
+
+    private sealed class TestInteractionInterpreter
+        : IAtlasInteractionInterpreter
+    {
+        public AtlasInteractionInterpretationResult InterpretationResult { get; init; } =
+            new(
+                new AtlasInteractionInterpretation(
+                    AtlasInteractionIntent.Unknown,
+                    null,
+                    null),
+                AtlasInteractionConfidence.Low,
+                true);
+
+        public Task<AtlasInteractionInterpretationResult> InterpretAsync(
+            AtlasInteraction interaction,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(
+                InterpretationResult);
+        }
+    }
+
+    private sealed class TestInteractionHandler
         : IAtlasInteractionHandler
     {
-        public AtlasInteractionInterpretation? ReceivedInterpretation { get; private set; }
-
-        public AtlasInteractionIntent Intent =>
-            intent;
+        public AtlasInteractionIntent Intent { get; init; }
 
         public bool WasCalled { get; private set; }
 
         public CancellationToken ReceivedCancellationToken { get; private set; }
 
-        public AtlasResponse Response { get; init; } = new()
-        {
-            Content = "Test response."
-        };
+        public AtlasInteractionInterpretation? ReceivedInterpretation { get; private set; }
 
         public Task<AtlasResponse> HandleAsync(
             AtlasInteraction interaction,
@@ -338,31 +529,14 @@ public sealed class AtlasInteractionProcessorTests
             CancellationToken cancellationToken = default)
         {
             WasCalled = true;
-            ReceivedInterpretation = interpretation;
             ReceivedCancellationToken = cancellationToken;
+            ReceivedInterpretation = interpretation;
 
-            return Task.FromResult(Response);
-        }
-    }
-
-    private sealed class TestInteractionInterpreter
-        : IAtlasInteractionInterpreter
-    {
-        public AtlasInteractionInterpretation Interpretation { get; init; } =
-            new(
-                AtlasInteractionIntent.Unknown,
-                null,
-                null);
-
-        public Task<AtlasInteractionInterpretationResult> InterpretAsync(
-            AtlasInteraction interaction,
-            CancellationToken cancellationToken = default)
-        {
             return Task.FromResult(
-                new AtlasInteractionInterpretationResult(
-                    Interpretation,
-                    AtlasInteractionConfidence.High,
-                    false));
+                new AtlasResponse
+                {
+                    Content = "Handler response"
+                });
         }
     }
 }

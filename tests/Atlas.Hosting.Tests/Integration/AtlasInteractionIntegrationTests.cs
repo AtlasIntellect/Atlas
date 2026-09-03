@@ -48,7 +48,7 @@ public sealed class AtlasInteractionIntegrationTests
 
         var searchInteraction = new AtlasInteraction
         {
-            Input = "I bought a Canon EOS 350D camera."
+            Input = "What camera do I have?"
         };
 
         var searchResponse = await processor.ProcessAsync(

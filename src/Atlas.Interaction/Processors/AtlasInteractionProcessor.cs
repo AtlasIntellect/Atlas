@@ -23,6 +23,14 @@ public sealed class AtlasInteractionProcessor(
                 interaction,
                 cancellationToken);
 
+        if (interpretationResult.IsAmbiguous)
+        {
+            return new AtlasResponse
+            {
+                Content = "I'm not quite sure what you mean. Could you clarify?"
+            };
+        }
+
         var interpretation =
             interpretationResult.Interpretation;
 

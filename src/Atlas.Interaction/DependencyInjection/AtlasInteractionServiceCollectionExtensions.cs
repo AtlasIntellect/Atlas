@@ -21,7 +21,9 @@ public static class AtlasInteractionServiceCollectionExtensions
     /// Registers Atlas interaction services.
     /// </summary>
     public static IServiceCollection AddAtlasInteraction(
-        this IServiceCollection services)
+        this IServiceCollection services,
+        AtlasInteractionInterpreterMode mode =
+            AtlasInteractionInterpreterMode.Deterministic)
     {
         services
             .AddSingleton<
@@ -46,9 +48,6 @@ public static class AtlasInteractionServiceCollectionExtensions
                 IAtlasInteractionMemoryContentExtractor,
                 AtlasInteractionMemoryContentExtractor>()
             .AddSingleton<
-                IAtlasInteractionInterpreter,
-                AtlasInteractionInterpreter>()
-            .AddSingleton<
                 IAtlasInteractionInterpretationParser,
                 AtlasInteractionInterpretationParser>()
             .AddSingleton<ProcessInteractionCommandHandler>()
@@ -59,6 +58,27 @@ public static class AtlasInteractionServiceCollectionExtensions
             .AddSingleton<IAtlasCommandHandlerBase>(
                 provider =>
                     provider.GetRequiredService<ProcessInteractionCommandHandler>());
+
+        switch (mode)
+        {
+            case AtlasInteractionInterpreterMode.Deterministic:
+                services.AddSingleton<
+                    IAtlasInteractionInterpreter,
+                    AtlasInteractionInterpreter>();
+                break;
+
+            case AtlasInteractionInterpreterMode.LanguageModel:
+                services.AddSingleton<
+                    IAtlasInteractionInterpreter,
+                    AtlasLanguageModelInteractionInterpreter>();
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException(
+                    nameof(mode),
+                    mode,
+                    "Unsupported interaction interpreter mode.");
+        }
 
         return services;
     }

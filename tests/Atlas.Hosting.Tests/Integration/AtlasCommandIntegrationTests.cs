@@ -185,10 +185,11 @@ public sealed class AtlasCommandIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that an interaction can be processed through the Atlas command dispatcher.
+    /// Verifies that dispatching a <see cref="ProcessInteractionCommand"/> with an ambiguous
+    /// interpretation returns a clarification response.
     /// </summary>
     [Fact]
-    public async Task DispatchAsync_Should_ProcessInteraction()
+    public async Task DispatchAsync_Should_ReturnClarificationForAmbiguousInteraction()
     {
         var builder = Host.CreateApplicationBuilder();
 
@@ -217,7 +218,7 @@ public sealed class AtlasCommandIntegrationTests
         Assert.NotEqual(Guid.Empty, result.Id);
         Assert.NotEqual(default, result.CreatedAt);
         Assert.Equal(
-            "Atlas received: Hello Atlas",
+            "I'm not quite sure what you mean. Could you clarify?",
             result.Content);
 
         await host.StopAsync(
