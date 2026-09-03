@@ -10,11 +10,10 @@ public interface IAtlasStructuredLanguageModel
     /// <summary>
     /// Generates a structured response.
     /// </summary>
-    /// <typeparam name="TResponse">The expected response type.</typeparam>
     /// <param name="request">The structured language model request.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The generated structured response.</returns>
-    Task<TResponse> GenerateAsync<TResponse>(
+    Task<AtlasStructuredLanguageModelResponse> GenerateAsync(
         AtlasStructuredLanguageModelRequest request,
         CancellationToken cancellationToken = default);
 }

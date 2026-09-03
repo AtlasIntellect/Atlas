@@ -7,9 +7,7 @@ using Atlas.Interaction.Interfaces;
 using Atlas.Interaction.Interpreters;
 using Atlas.Interaction.Models;
 using Atlas.Interaction.Processors;
-using Atlas.Runtime.Commands;
-using Atlas.Runtime.Handlers;
-using Atlas.Runtime.Models;
+using Atlas.Interaction.Structured;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Atlas.Interaction.DependencyInjection;
@@ -50,6 +48,9 @@ public static class AtlasInteractionServiceCollectionExtensions
             .AddSingleton<
                 IAtlasInteractionInterpreter,
                 AtlasInteractionInterpreter>()
+            .AddSingleton<
+                IAtlasInteractionInterpretationParser,
+                AtlasInteractionInterpretationParser>()
             .AddSingleton<ProcessInteractionCommandHandler>()
             .AddSingleton<
                 IAtlasCommandHandler<ProcessInteractionCommand, AtlasResponse>>(

@@ -1,18 +1,18 @@
 ﻿using Atlas.AI.Interfaces;
-using Atlas.AI.Models;
+using Atlas.AI.Structured;
 
 namespace Atlas.AI.Tests.TestImplementations;
 
 /// <summary>
 /// Provides a deterministic language model implementation for testing.
 /// </summary>
-public sealed class TestAtlasLanguageModel
-    : IAtlasLanguageModel
+public sealed class TestAtlasStructuredLanguageModel
+    : IAtlasStructuredLanguageModel
 {
     /// <summary>
     /// Gets the request received by the language model.
     /// </summary>
-    public AtlasLanguageModelRequest? ReceivedRequest { get; private set; }
+    public AtlasStructuredLanguageModelRequest? ReceivedRequest { get; private set; }
 
     /// <summary>
     /// Gets the cancellation token received by the language model.
@@ -20,19 +20,14 @@ public sealed class TestAtlasLanguageModel
     public CancellationToken ReceivedCancellationToken { get; private set; }
 
     /// <summary>
-    /// Gets or sets the response to return from the language model.
+    /// Gets or sets the response returned by the language model.
     /// </summary>
-    public AtlasLanguageModelResponse Response { get; init; } = new(
-        "Test response");
+    public AtlasStructuredLanguageModelResponse Response { get; init; } =
+        new("Test structured response");
 
-    /// <summary>
-    /// Generates a response based on the provided request.
-    /// </summary>
-    /// <param name="request">The language model request.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The generated language model response.</returns>
-    public Task<AtlasLanguageModelResponse> GenerateAsync(
-        AtlasLanguageModelRequest request,
+    /// <inheritdoc/>
+    public Task<AtlasStructuredLanguageModelResponse> GenerateAsync(
+        AtlasStructuredLanguageModelRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
