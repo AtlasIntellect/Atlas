@@ -18,8 +18,13 @@ public sealed class AtlasInteractionProcessor(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        var interpretationResult =
+            await interactionInterpreter.InterpretAsync(
+                interaction,
+                cancellationToken);
+
         var interpretation =
-            interactionInterpreter.Interpret(interaction);
+            interpretationResult.Interpretation;
 
         var handler =
             handlers.FirstOrDefault(

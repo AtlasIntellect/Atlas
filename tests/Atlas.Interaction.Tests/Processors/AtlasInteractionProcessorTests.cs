@@ -354,10 +354,15 @@ public sealed class AtlasInteractionProcessorTests
                 null,
                 null);
 
-        public AtlasInteractionInterpretation Interpret(
-            AtlasInteraction interaction)
+        public Task<AtlasInteractionInterpretationResult> InterpretAsync(
+            AtlasInteraction interaction,
+            CancellationToken cancellationToken = default)
         {
-            return Interpretation;
+            return Task.FromResult(
+                new AtlasInteractionInterpretationResult(
+                    Interpretation,
+                    AtlasInteractionConfidence.High,
+                    false));
         }
     }
 }

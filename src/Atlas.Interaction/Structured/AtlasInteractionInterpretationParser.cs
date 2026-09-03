@@ -19,20 +19,35 @@ public sealed class AtlasInteractionInterpretationParser
     };
 
     /// <inheritdoc/>
-    public AtlasInteractionInterpretation Parse(string content)
+    public AtlasInteractionInterpretationResult Parse(
+        string content)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(content);
 
         var structuredInterpretation =
-            JsonSerializer.Deserialize<AtlasStructuredInteractionInterpretation>(
+            JsonSerializer.Deserialize<
+                AtlasStructuredInteractionInterpretation>(
                 content,
                 SerializerOptions)
             ?? throw new InvalidOperationException(
                 "The language model returned an empty interaction interpretation.");
 
-        return new AtlasInteractionInterpretation(
-            structuredInterpretation.Intent,
-            structuredInterpretation.Query,
-            structuredInterpretation.MemoryContent);
+        structuredInterpretation.Validate();
+
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                structuredInterpretation.Intent,
+                structuredInterpretation.Query,
+                structuredInterpretation.MemoryContent);
+
+        var result =
+            new AtlasInteractionInterpretationResult(
+                interpretation,
+                structuredInterpretation.Confidence,
+                structuredInterpretation.IsAmbiguous);
+
+        result.Validate();
+
+        return result;
     }
 }
