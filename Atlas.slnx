@@ -23,6 +23,7 @@
     <Project Path="src/Atlas.Runtime/Atlas.Runtime.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Atlas.AI.Tests/Atlas.AI.Tests.csproj" Id="4969ce01-b4ea-40d0-a51f-b24614e29166" />
     <Project Path="tests/Atlas.Commands.Tests/Atlas.Commands.Tests.csproj" Id="1fa1fba6-cda6-4e6a-a84e-8e43cfb07cc6" />
     <Project Path="tests/Atlas.Events.Tests/Atlas.Events.Tests.csproj" Id="e590f14b-551f-4c86-9203-a0d7cdb13b76" />
     <Project Path="tests/Atlas.Hosting.Tests/Atlas.Hosting.Tests.csproj" Id="ebc57050-2353-4ae7-a857-f67185a61e53" />

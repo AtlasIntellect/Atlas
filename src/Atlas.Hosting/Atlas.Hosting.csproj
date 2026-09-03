@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Atlas.Abstractions\Atlas.Abstractions.csproj" />
+    <ProjectReference Include="..\Atlas.AI\Atlas.AI.csproj" />
     <ProjectReference Include="..\Atlas.Commands\Atlas.Commands.csproj" />
     <ProjectReference Include="..\Atlas.Events\Atlas.Events.csproj" />
     <ProjectReference Include="..\Atlas.Interaction\Atlas.Interaction.csproj" />

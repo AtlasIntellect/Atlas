@@ -4,12 +4,12 @@ using Atlas.Interaction.Models;
 namespace Atlas.Interaction.Interpreters;
 
 /// <summary>
-/// Provides functionality to interpret <see cref="AtlasInteraction"/> instances into structured representations
-/// by detecting their intent and optionally extracting associated queries.
+/// Provides functionality to interpret <see cref="AtlasInteraction"/> instances
+/// by detecting their intent and optionally extracting associated queries or memory content.
 /// </summary>
 /// <param name="intentDetector">The intent detector used to analyze the interaction's intent.</param>
 /// <param name="queryExtractor">The query extractor used to extract query data from the interaction.</param>
-/// <param name="memoryContentExtractor">The memory content extractor used to extract the memory content from the interaction.</param>
+/// <param name="memoryContentExtractor">The memory content extractor used to extract memory content from the interaction.</param>
 public sealed class AtlasInteractionInterpreter(
     IAtlasInteractionIntentDetector intentDetector,
     IAtlasInteractionQueryExtractor queryExtractor,
@@ -17,10 +17,13 @@ public sealed class AtlasInteractionInterpreter(
     : IAtlasInteractionInterpreter
 {
     /// <inheritdoc/>
-    public AtlasInteractionInterpretation Interpret(
-        AtlasInteraction interaction)
+    public Task<AtlasInteractionInterpretationResult> InterpretAsync(
+        AtlasInteraction interaction,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(interaction);
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var intent =
             intentDetector.Detect(interaction);
@@ -35,9 +38,24 @@ public sealed class AtlasInteractionInterpreter(
                 ? memoryContentExtractor.ExtractContent(interaction)
                 : null;
 
-        return new AtlasInteractionInterpretation(
-            intent,
-            query,
-            memoryContent);
+        var interpretation =
+            new AtlasInteractionInterpretation(
+                intent,
+                query,
+                memoryContent);
+
+        var confidence =
+            intent == AtlasInteractionIntent.Unknown
+                ? AtlasInteractionConfidence.Low
+                : AtlasInteractionConfidence.High;
+
+        var isAmbiguous =
+            intent == AtlasInteractionIntent.Unknown;
+
+        return Task.FromResult(
+            new AtlasInteractionInterpretationResult(
+                interpretation,
+                confidence,
+                isAmbiguous));
     }
 }

@@ -13,21 +13,18 @@ namespace Atlas.Interaction.Tests.Interpreters;
 public sealed class AtlasInteractionInterpreterTests
 {
     /// <summary>
-    /// Verifies that the <see cref="AtlasInteractionInterpreter.Interpret"/> method correctly interprets an
+    /// Verifies that the <see cref="AtlasInteractionInterpreter.InterpretAsync"/> method correctly interprets an
     /// <see cref="AtlasInteraction"/> instance with an input query, returning an interpretation with
     /// <see cref="AtlasInteractionIntent.SearchMemory"/> intent and the extracted query.
     /// </summary>
     [Fact]
-    public void Interpret_Should_ReturnSearchMemoryWithQuery()
+    public async Task InterpretAsync_Should_ReturnSearchMemoryWithQuery()
     {
-        var intentDetector =
-            new AtlasInteractionIntentDetector();
+        var intentDetector = new AtlasInteractionIntentDetector();
 
-        var queryExtractor =
-            new AtlasInteractionQueryExtractor();
+        var queryExtractor = new AtlasInteractionQueryExtractor();
 
-        var memoryContentExtractor =
-            new AtlasInteractionMemoryContentExtractor();
+        var memoryContentExtractor = new AtlasInteractionMemoryContentExtractor();
 
         var interpreter =
             new AtlasInteractionInterpreter(
@@ -41,15 +38,23 @@ public sealed class AtlasInteractionInterpreterTests
         };
 
         var result =
-            interpreter.Interpret(interaction);
+            await interpreter.InterpretAsync(interaction, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             AtlasInteractionIntent.SearchMemory,
-            result.Intent);
+            result.Interpretation.Intent);
 
         Assert.Equal(
             "camera",
-            result.Query);
+            result.Interpretation.Query);
+
+        Assert.Null(result.Interpretation.MemoryContent);
+
+        Assert.Equal(
+            AtlasInteractionConfidence.High,
+            result.Confidence);
+
+        Assert.False(result.IsAmbiguous);
     }
 
     /// <summary>
@@ -58,16 +63,13 @@ public sealed class AtlasInteractionInterpreterTests
     /// and ensuring that no query is extracted.
     /// </summary>
     [Fact]
-    public void Interpret_Should_ReturnStoreMemoryWithoutQuery()
+    public async Task InterpretAsync_Should_ReturnStoreMemoryWithoutQuery()
     {
-        var intentDetector =
-            new AtlasInteractionIntentDetector();
+        var intentDetector = new AtlasInteractionIntentDetector();
 
-        var queryExtractor =
-            new AtlasInteractionQueryExtractor();
+        var queryExtractor = new AtlasInteractionQueryExtractor();
 
-        var memoryContentExtractor =
-            new AtlasInteractionMemoryContentExtractor();
+        var memoryContentExtractor = new AtlasInteractionMemoryContentExtractor();
 
         var interpreter =
             new AtlasInteractionInterpreter(
@@ -81,18 +83,27 @@ public sealed class AtlasInteractionInterpreterTests
         };
 
         var result =
-            interpreter.Interpret(interaction);
+            await interpreter.InterpretAsync(interaction, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             AtlasInteractionIntent.StoreMemory,
-            result.Intent);
+            result.Interpretation.Intent);
 
-        Assert.Null(
-            result.Query);
+        Assert.Null(result.Interpretation.Query);
+
+        Assert.Equal(
+            "I bought a Canon camera.",
+            result.Interpretation.MemoryContent);
+
+        Assert.Equal(
+            AtlasInteractionConfidence.High,
+            result.Confidence);
+
+        Assert.False(result.IsAmbiguous);
     }
 
     /// <summary>
-    /// Verifies that the <see cref="AtlasInteractionInterpreter.Interpret"/> method
+    /// Verifies that the <see cref="AtlasInteractionInterpreter.InterpretAsync"/> method
     /// throws an <see cref="ArgumentNullException"/> when the provided interaction is <c>null</c>.
     /// </summary>
     /// <remarks>
@@ -100,16 +111,13 @@ public sealed class AtlasInteractionInterpreterTests
     /// invalid input by throwing the appropriate exception.
     /// </remarks>
     [Fact]
-    public void Interpret_Should_Throw_WhenInteractionIsNull()
+    public async Task InterpretAsync_Should_Throw_WhenInteractionIsNull()
     {
-        var intentDetector =
-            new AtlasInteractionIntentDetector();
+        var intentDetector = new AtlasInteractionIntentDetector();
 
-        var queryExtractor =
-            new AtlasInteractionQueryExtractor();
+        var queryExtractor = new AtlasInteractionQueryExtractor();
 
-        var memoryContentExtractor =
-            new AtlasInteractionMemoryContentExtractor();
+        var memoryContentExtractor = new AtlasInteractionMemoryContentExtractor();
 
         var interpreter =
             new AtlasInteractionInterpreter(
@@ -117,25 +125,22 @@ public sealed class AtlasInteractionInterpreterTests
                 queryExtractor,
                 memoryContentExtractor);
 
-        Assert.Throws<ArgumentNullException>(
-            () => interpreter.Interpret(null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => interpreter.InterpretAsync(null!, TestContext.Current.CancellationToken));
     }
 
     /// <summary>
-    /// Tests that the <see cref="AtlasInteractionInterpreter.Interpret(AtlasInteraction)"/> method
+    /// Tests that the <see cref="AtlasInteractionInterpreter.InterpretAsync(AtlasInteraction, CancellationToken)"/> method
     /// correctly interprets an interaction with the intent to store memory and returns the expected memory content.
     /// </summary>
     [Fact]
-    public void Interpret_Should_ReturnMemoryContentForStoreMemory()
+    public async Task InterpretAsync_Should_ReturnMemoryContentForStoreMemory()
     {
-        var intentDetector =
-            new AtlasInteractionIntentDetector();
+        var intentDetector = new AtlasInteractionIntentDetector();
 
-        var queryExtractor =
-            new AtlasInteractionQueryExtractor();
+        var queryExtractor = new AtlasInteractionQueryExtractor();
 
-        var memoryContentExtractor =
-            new AtlasInteractionMemoryContentExtractor();
+        var memoryContentExtractor = new AtlasInteractionMemoryContentExtractor();
 
         var interpreter =
             new AtlasInteractionInterpreter(
@@ -149,36 +154,38 @@ public sealed class AtlasInteractionInterpreterTests
         };
 
         var result =
-            interpreter.Interpret(interaction);
+            await interpreter.InterpretAsync(interaction, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             AtlasInteractionIntent.StoreMemory,
-            result.Intent);
+            result.Interpretation.Intent);
 
-        Assert.Null(
-            result.Query);
+        Assert.Null(result.Interpretation.Query);
 
         Assert.Equal(
             "I bought a Canon EOS 350D camera.",
-            result.MemoryContent);
+            result.Interpretation.MemoryContent);
+
+        Assert.Equal(
+            AtlasInteractionConfidence.High,
+            result.Confidence);
+
+        Assert.False(result.IsAmbiguous);
     }
 
     /// <summary>
-    /// Tests that the <see cref="AtlasInteractionInterpreter.Interpret"/> method
+    /// Tests that the <see cref="AtlasInteractionInterpreter.InterpretAsync"/> method
     /// returns an interpretation with an <see cref="AtlasInteractionIntent.Unknown"/> intent,
     /// and no query or memory content, when the input interaction contains an unknown intent.
     /// </summary>
     [Fact]
-    public void Interpret_Should_ReturnNoContentForUnknownIntent()
+    public async Task InterpretAsync_Should_ReturnNoContentForUnknownIntent()
     {
-        var intentDetector =
-            new AtlasInteractionIntentDetector();
+        var intentDetector = new AtlasInteractionIntentDetector();
 
-        var queryExtractor =
-            new AtlasInteractionQueryExtractor();
+        var queryExtractor = new AtlasInteractionQueryExtractor();
 
-        var memoryContentExtractor =
-            new AtlasInteractionMemoryContentExtractor();
+        var memoryContentExtractor = new AtlasInteractionMemoryContentExtractor();
 
         var interpreter =
             new AtlasInteractionInterpreter(
@@ -192,17 +199,21 @@ public sealed class AtlasInteractionInterpreterTests
         };
 
         var result =
-            interpreter.Interpret(interaction);
+            await interpreter.InterpretAsync(interaction, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             AtlasInteractionIntent.Unknown,
-            result.Intent);
+            result.Interpretation.Intent);
 
-        Assert.Null(
-            result.Query);
+        Assert.Equal(
+            AtlasInteractionConfidence.Low,
+            result.Confidence);
 
-        Assert.Null(
-            result.MemoryContent);
+        Assert.True(result.IsAmbiguous);
+
+        Assert.Null(result.Interpretation.Query);
+
+        Assert.Null(result.Interpretation.MemoryContent);
     }
 
     /// <summary>
@@ -210,7 +221,7 @@ public sealed class AtlasInteractionInterpreterTests
     /// memory content.
     /// </summary>
     [Fact]
-    public void Interpret_Should_ExtractQuery_ForSearchMemory()
+    public async Task InterpretAsync_Should_ExtractQuery_ForSearchMemory()
     {
         var intentDetector = new TestIntentDetector
         {
@@ -233,28 +244,31 @@ public sealed class AtlasInteractionInterpreterTests
                 queryExtractor,
                 contentExtractor);
 
-        var result = interpreter.Interpret(
+        var result = await interpreter.InterpretAsync(
             new AtlasInteraction
             {
                 Input = "What camera do I have?"
-            });
+            }, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             AtlasInteractionIntent.SearchMemory,
-            result.Intent);
+            result.Interpretation.Intent);
 
         Assert.Equal(
             "camera",
-            result.Query);
+            result.Interpretation.Query);
 
-        Assert.Null(
-            result.MemoryContent);
+        Assert.Null(result.Interpretation.MemoryContent);
 
-        Assert.True(
-            queryExtractor.WasCalled);
+        Assert.Equal(
+            AtlasInteractionConfidence.High,
+            result.Confidence);
 
-        Assert.False(
-            contentExtractor.WasCalled);
+        Assert.False(result.IsAmbiguous);
+
+        Assert.True(queryExtractor.WasCalled);
+
+        Assert.False(contentExtractor.WasCalled);
     }
 
     /// <summary>
@@ -262,7 +276,7 @@ public sealed class AtlasInteractionInterpreterTests
     /// extract a search query.
     /// </summary>
     [Fact]
-    public void Interpret_Should_ExtractMemoryContent_ForStoreMemory()
+    public async Task InterpretAsync_Should_ExtractMemoryContent_ForStoreMemory()
     {
         var intentDetector = new TestIntentDetector
         {
@@ -285,35 +299,38 @@ public sealed class AtlasInteractionInterpreterTests
                 queryExtractor,
                 contentExtractor);
 
-        var result = interpreter.Interpret(
+        var result = await interpreter.InterpretAsync(
             new AtlasInteraction
             {
                 Input = "Remember that I bought a Canon EOS 350D."
-            });
+            }, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             AtlasInteractionIntent.StoreMemory,
-            result.Intent);
+            result.Interpretation.Intent);
 
-        Assert.Null(
-            result.Query);
+        Assert.Null(result.Interpretation.Query);
 
         Assert.Equal(
             "I bought a Canon EOS 350D.",
-            result.MemoryContent);
+            result.Interpretation.MemoryContent);
 
-        Assert.False(
-            queryExtractor.WasCalled);
+        Assert.Equal(
+            AtlasInteractionConfidence.High,
+            result.Confidence);
 
-        Assert.True(
-            contentExtractor.WasCalled);
+        Assert.False(result.IsAmbiguous);
+
+        Assert.False(queryExtractor.WasCalled);
+
+        Assert.True(contentExtractor.WasCalled);
     }
 
     /// <summary>
     /// Verifies that unknown interactions do not invoke either query or memory-content extraction.
     /// </summary>
     [Fact]
-    public void Interpret_Should_NotExtractData_ForUnknownIntent()
+    public async Task InterpretAsync_Should_NotExtractData_ForUnknownIntent()
     {
         var intentDetector = new TestIntentDetector
         {
@@ -329,27 +346,58 @@ public sealed class AtlasInteractionInterpreterTests
                 queryExtractor,
                 contentExtractor);
 
-        var result = interpreter.Interpret(
+        var result = await interpreter.InterpretAsync(
             new AtlasInteraction
             {
                 Input = "Hello Atlas."
-            });
+            }, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             AtlasInteractionIntent.Unknown,
-            result.Intent);
+            result.Interpretation.Intent);
 
-        Assert.Null(
-            result.Query);
+        Assert.Equal(
+            AtlasInteractionConfidence.Low,
+            result.Confidence);
 
-        Assert.Null(
-            result.MemoryContent);
+        Assert.True(result.IsAmbiguous);
 
-        Assert.False(
-            queryExtractor.WasCalled);
+        Assert.False(queryExtractor.WasCalled);
 
-        Assert.False(
-            contentExtractor.WasCalled);
+        Assert.False(contentExtractor.WasCalled);
+
+        Assert.Null(result.Interpretation.Query);
+
+        Assert.Null(result.Interpretation.MemoryContent);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="AtlasInteractionInterpreter.InterpretAsync"/> method returns a valid result
+    /// </summary>
+    [Fact]
+    public async Task InterpretAsync_Should_ReturnValidResult()
+    {
+        var intentDetector = new AtlasInteractionIntentDetector();
+
+        var queryExtractor = new AtlasInteractionQueryExtractor();
+
+        var memoryContentExtractor = new AtlasInteractionMemoryContentExtractor();
+
+        var interpreter =
+            new AtlasInteractionInterpreter(
+                intentDetector,
+                queryExtractor,
+                memoryContentExtractor);
+
+        var result =
+            await interpreter.InterpretAsync(
+                new AtlasInteraction
+                {
+                    Input = "Hello Atlas."
+                },
+                TestContext.Current.CancellationToken);
+
+        result.Validate();
     }
 
     private sealed class TestIntentDetector
@@ -357,8 +405,7 @@ public sealed class AtlasInteractionInterpreterTests
     {
         public AtlasInteractionIntent Intent { get; init; }
 
-        public AtlasInteractionIntent Detect(
-            AtlasInteraction interaction)
+        public AtlasInteractionIntent Detect(AtlasInteraction interaction)
         {
             return Intent;
         }
@@ -371,8 +418,7 @@ public sealed class AtlasInteractionInterpreterTests
 
         public bool WasCalled { get; private set; }
 
-        public string ExtractQuery(
-            AtlasInteraction interaction)
+        public string ExtractQuery(AtlasInteraction interaction)
         {
             WasCalled = true;
 
@@ -387,8 +433,7 @@ public sealed class AtlasInteractionInterpreterTests
 
         public bool WasCalled { get; private set; }
 
-        public string ExtractContent(
-            AtlasInteraction interaction)
+        public string ExtractContent(AtlasInteraction interaction)
         {
             WasCalled = true;
 

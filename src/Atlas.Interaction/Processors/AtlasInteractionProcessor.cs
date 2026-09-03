@@ -18,8 +18,21 @@ public sealed class AtlasInteractionProcessor(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        var interpretationResult =
+            await interactionInterpreter.InterpretAsync(
+                interaction,
+                cancellationToken);
+
+        if (interpretationResult.IsAmbiguous)
+        {
+            return new AtlasResponse
+            {
+                Content = "I'm not quite sure what you mean. Could you clarify?"
+            };
+        }
+
         var interpretation =
-            interactionInterpreter.Interpret(interaction);
+            interpretationResult.Interpretation;
 
         var handler =
             handlers.FirstOrDefault(

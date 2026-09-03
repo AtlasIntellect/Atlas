@@ -1,6 +1,8 @@
-﻿using Atlas.Commands.DependencyInjection;
+﻿using Atlas.AI.DependencyInjection;
+using Atlas.Commands.DependencyInjection;
 using Atlas.Events.DependencyInjection;
 using Atlas.Interaction.DependencyInjection;
+using Atlas.Interaction.Models;
 using Atlas.Memory.DependencyInjection;
 using Atlas.Runtime.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -20,12 +22,34 @@ public static class AtlasServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration? configuration = null)
     {
+        var configuredMode =
+            configuration?
+                .GetSection("Atlas:Interaction")
+                .GetValue<string>("InterpreterMode");
+
+        var mode =
+            string.IsNullOrWhiteSpace(configuredMode)
+                ? AtlasInteractionInterpreterMode.Deterministic
+                : configuredMode.Trim() switch
+                {
+                    "Deterministic" =>
+                        AtlasInteractionInterpreterMode.Deterministic,
+
+                    "LanguageModel" =>
+                        AtlasInteractionInterpreterMode.LanguageModel,
+
+                    var value =>
+                        throw new InvalidOperationException(
+                            $"Unsupported Atlas interaction interpreter mode: '{value}'.")
+                };
+
         services
-            .AddAtlasCommands()
             .AddAtlasEvents()
+            .AddAtlasCommands()
             .AddAtlasMemory()
-            .AddAtlasInteraction()
+            .AddAtlasInteraction(mode)
             .AddAtlasRuntime()
+            .AddAtlasAi()
             .AddAtlasHosting(configuration);
 
         return services;
