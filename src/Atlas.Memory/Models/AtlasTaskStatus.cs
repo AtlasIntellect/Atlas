@@ -8,15 +8,15 @@ public enum AtlasTaskStatus
     /// <summary>
     /// The task is currently active and has not been completed or cancelled.
     /// </summary>
-    Active,
+    Active = 0,
 
     /// <summary>
     /// The task has been completed.
     /// </summary>
-    Completed,
+    Completed = 1,
 
     /// <summary>
     /// The task has been cancelled and is no longer active.
     /// </summary>
-    Cancelled
+    Cancelled = 2
 }
