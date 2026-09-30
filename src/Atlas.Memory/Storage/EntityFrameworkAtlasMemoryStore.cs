@@ -8,9 +8,9 @@ namespace Atlas.Memory.Storage;
 /// <summary>
 /// Provides an Entity Framework Core implementation of <see cref="IAtlasMemoryStore"/>
 /// </summary>
-/// <param name="dbContext"></param>
+/// <param name="dbContextFactory">The factory for creating DbContext instances.</param>
 public sealed class EntityFrameworkAtlasMemoryStore(
-    AtlasMemoryDbContext dbContext)
+    IDbContextFactory<AtlasMemoryDbContext> dbContextFactory)
     : IAtlasMemoryStore
 {
     /// <inheritdoc />
@@ -23,6 +23,9 @@ public sealed class EntityFrameworkAtlasMemoryStore(
         cancellationToken.ThrowIfCancellationRequested();
 
         var record = AtlasMemoryRecordMapper.ToRecord(memory);
+
+        await using var dbContext =
+            await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         var existing =
             await dbContext.Memories
@@ -45,6 +48,9 @@ public sealed class EntityFrameworkAtlasMemoryStore(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        await using var dbContext =
+            await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
         var record =
             await dbContext.Memories
             .AsNoTracking()
@@ -64,6 +70,9 @@ public sealed class EntityFrameworkAtlasMemoryStore(
         ArgumentNullException.ThrowIfNull(query);
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        await using var dbContext =
+            await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         var records =
             await dbContext.Memories

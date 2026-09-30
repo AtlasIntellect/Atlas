@@ -2,6 +2,7 @@
 using Atlas.Memory.Storage;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Atlas.Memory.Tests.Storage;
@@ -351,22 +352,29 @@ public sealed class EntityFrameworkAtlasMemoryStoreTests
 
         connection.Open();
 
-        var options =
-            new DbContextOptionsBuilder<AtlasMemoryDbContext>()
-                .UseSqlite(connection)
-                .Options;
+        var services = new ServiceCollection();
 
-        var context = new AtlasMemoryDbContext(options);
+        services.AddDbContextFactory<AtlasMemoryDbContext>(
+            options => options.UseSqlite(connection));
 
-        context.Database.EnsureCreated();
+        var provider = services.BuildServiceProvider();
+
+        var factory =
+            provider.GetRequiredService<
+                IDbContextFactory<AtlasMemoryDbContext>>();
+
+        using (var context = factory.CreateDbContext())
+        {
+            context.Database.EnsureCreated();
+        }
 
         var store =
             new EntityFrameworkAtlasMemoryStore(
-                context);
+                factory);
 
         return new TestDatabase(
             connection,
-            context,
+            provider,
             store);
     }
 
@@ -387,7 +395,7 @@ public sealed class EntityFrameworkAtlasMemoryStoreTests
 
     private sealed class TestDatabase(
         SqliteConnection connection,
-        AtlasMemoryDbContext context,
+        ServiceProvider provider,
         EntityFrameworkAtlasMemoryStore store)
         : IAsyncDisposable
     {
@@ -396,7 +404,7 @@ public sealed class EntityFrameworkAtlasMemoryStoreTests
 
         public async ValueTask DisposeAsync()
         {
-            await context.DisposeAsync();
+            await provider.DisposeAsync();
             await connection.DisposeAsync();
         }
     }
