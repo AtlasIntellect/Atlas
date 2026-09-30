@@ -6,6 +6,8 @@ using Atlas.Memory.Interfaces;
 using Atlas.Memory.Interpreters;
 using Atlas.Memory.Models;
 using Atlas.Memory.Storage;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Atlas.Memory.DependencyInjection;
@@ -19,8 +21,55 @@ public static class AtlasMemoryServiceCollectionExtensions
     /// Registers Atlas memory services.
     /// </summary>
     public static IServiceCollection AddAtlasMemory(
-        this IServiceCollection services)
+        this IServiceCollection services,
+        IConfiguration? configuration = null)
     {
+        var configuredStorageMode = configuration?["Atlas:Memory:StorageMode"];
+
+        var storageMode =
+            string.IsNullOrWhiteSpace(configuredStorageMode)
+                ? AtlasMemoryStorageMode.InMemory
+                : configuredStorageMode.Trim() switch
+                {
+                    "InMemory" => AtlasMemoryStorageMode.InMemory,
+                    "Sqlite" => AtlasMemoryStorageMode.Sqlite,
+
+                    var value =>
+                        throw new InvalidOperationException(
+                            $"Unsupported Atlas memory storage mode: {value}.")
+                };
+
+        switch (storageMode)
+        {
+            case AtlasMemoryStorageMode.InMemory:
+                services.AddSingleton<
+                    IAtlasMemoryStore,
+                    InMemoryAtlasMemoryStore>();
+                break;
+
+            case AtlasMemoryStorageMode.Sqlite:
+                var connectionString =
+                    configuration?
+                        .GetConnectionString("AtlasMemory");
+
+                if (string.IsNullOrWhiteSpace(connectionString))
+                    throw new InvalidOperationException(
+                        "An AtlasMemory SQLite connection string is required when using SQLite storage.");
+
+                services.AddDbContextFactory<AtlasMemoryDbContext>(
+                    options =>
+                        options.UseSqlite(connectionString));
+
+                services.AddSingleton<
+                    IAtlasMemoryStore,
+                    EntityFrameworkAtlasMemoryStore>();
+                break;
+
+            default:
+                throw new InvalidOperationException(
+                    $"Unsupported Atlas memory storage mode: {storageMode}.");
+        }
+
         services
             .AddSingleton<IAtlasMemory, AtlasMemory>()
             .AddSingleton<

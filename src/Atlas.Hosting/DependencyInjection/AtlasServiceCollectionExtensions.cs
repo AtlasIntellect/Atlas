@@ -46,7 +46,7 @@ public static class AtlasServiceCollectionExtensions
         services
             .AddAtlasEvents()
             .AddAtlasCommands()
-            .AddAtlasMemory()
+            .AddAtlasMemory(configuration)
             .AddAtlasInteraction(mode)
             .AddAtlasRuntime()
             .AddAtlasAi()
