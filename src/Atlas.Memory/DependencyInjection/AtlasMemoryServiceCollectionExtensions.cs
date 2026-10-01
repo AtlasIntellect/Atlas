@@ -45,6 +45,11 @@ public static class AtlasMemoryServiceCollectionExtensions
                 services.AddSingleton<
                     IAtlasMemoryStore,
                     InMemoryAtlasMemoryStore>();
+
+                services.AddSingleton<
+                    IAtlasMemoryStoreInitializer,
+                    InMemoryAtlasMemoryStoreInitializer>();
+
                 break;
 
             case AtlasMemoryStorageMode.Sqlite:
@@ -63,6 +68,11 @@ public static class AtlasMemoryServiceCollectionExtensions
                 services.AddSingleton<
                     IAtlasMemoryStore,
                     EntityFrameworkAtlasMemoryStore>();
+
+                services.AddSingleton<
+                    IAtlasMemoryStoreInitializer,
+                    EntityFrameworkAtlasMemoryStoreInitializer>();
+
                 break;
 
             default:

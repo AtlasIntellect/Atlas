@@ -2,6 +2,7 @@
 using Atlas.Events.Dispatchers;
 using Atlas.Events.Interfaces;
 using Atlas.Hosting.DependencyInjection;
+using Atlas.Hosting.Memory;
 using Atlas.Hosting.Runtime;
 using Atlas.Hosting.Startup;
 using Atlas.Interaction.Interfaces;
@@ -238,5 +239,33 @@ public sealed class AtlasServiceCollectionExtensionsTests
         Assert.Equal(
             "Unsupported Atlas interaction interpreter mode: 'SomethingElse'.",
             exception.Message);
+    }
+
+    /// <summary>
+    /// Verifies that Atlas initializes persistent memory before starting the runtime.
+    /// </summary>
+    [Fact]
+    public void AddAtlas_Should_RegisterMemoryInitializationBeforeRuntime()
+    {
+        var services =
+            new ServiceCollection();
+
+        services.AddAtlas();
+
+        var hostedServiceTypes =
+            services
+                .Where(service =>
+                    service.ServiceType == typeof(IHostedService))
+                .Select(service =>
+                    service.ImplementationType)
+                .ToList();
+
+        Assert.Equal(
+            typeof(AtlasMemoryInitializationHostedService),
+            hostedServiceTypes[0]);
+
+        Assert.Equal(
+            typeof(AtlasRuntimeHostedService),
+            hostedServiceTypes[1]);
     }
 }
