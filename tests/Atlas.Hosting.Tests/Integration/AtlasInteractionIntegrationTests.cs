@@ -3,7 +3,9 @@ using Atlas.Interaction.Interfaces;
 using Atlas.Interaction.Models;
 using Atlas.Memory.Interfaces;
 using Atlas.Memory.Models;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Atlas.Hosting.Tests.Integration;
@@ -348,5 +350,117 @@ public sealed class AtlasInteractionIntegrationTests
             "Canon EOS 350D camera",
             response.Content,
             StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Verifies that a memory stored through a natural-language interaction
+    /// remains available to a newly created Atlas application instance.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_Should_PersistNaturalLanguageMemoryAcrossApplicationRecreation()
+    {
+        var databasePath =
+            Path.Combine(
+                Path.GetTempPath(),
+                $"atlas-memory-{Guid.NewGuid():N}.db");
+
+        try
+        {
+            const string memoryContent =
+                "I bought a Canon EOS 350D camera.";
+
+            var storeResponse =
+                await ProcessInteractionAsync(
+                    databasePath,
+                    $"Remember that {memoryContent}");
+
+            Assert.Equal(
+                "Memory stored successfully.",
+                storeResponse.Content);
+
+            var searchResponse =
+                await ProcessInteractionAsync(
+                    databasePath,
+                    "What camera did I buy?");
+
+            Assert.Contains(
+                memoryContent,
+                searchResponse.Content);
+        }
+        finally
+        {
+            DeleteDatabaseFiles(databasePath);
+        }
+    }
+
+    private static async Task<AtlasResponse> ProcessInteractionAsync(
+        string databasePath,
+        string input)
+    {
+        var builder = CreateBuilder(databasePath);
+
+        builder.Services.AddAtlas(
+            builder.Configuration);
+
+        using var host = builder.Build();
+
+        await host.StartAsync(
+            TestContext.Current.CancellationToken);
+
+        var processor =
+            host.Services.GetRequiredService<
+                IAtlasInteractionProcessor>();
+
+        var response =
+            await processor.ProcessAsync(
+                new AtlasInteraction
+                {
+                    Input = input
+                },
+                TestContext.Current.CancellationToken);
+
+        await host.StopAsync(
+            TestContext.Current.CancellationToken);
+
+        return response;
+    }
+
+    private static HostApplicationBuilder CreateBuilder(
+        string databasePath)
+    {
+        var builder =
+            Host.CreateApplicationBuilder();
+
+        builder.Configuration.AddInMemoryCollection(
+            new Dictionary<string, string?>
+            {
+                ["Atlas:Memory:StorageMode"] = "Sqlite",
+                ["ConnectionStrings:AtlasMemory"] =
+                    $"Data Source={databasePath};Pooling=False",
+                ["Atlas:Interaction:InterpreterMode"] =
+                    "Deterministic"
+            });
+
+        return builder;
+    }
+
+    private static void DeleteDatabaseFiles(
+        string databasePath)
+    {
+        var files =
+            new[]
+            {
+                databasePath,
+                $"{databasePath}-shm",
+                $"{databasePath}-wal"
+            };
+
+        foreach (var file in files)
+        {
+            if (File.Exists(file))
+            {
+                File.Delete(file);
+            }
+        }
     }
 }
