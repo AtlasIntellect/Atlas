@@ -1,4 +1,5 @@
-﻿using Atlas.Memory.Models;
+﻿using Atlas.Memory.Interfaces;
+using Atlas.Memory.Models;
 using Atlas.Memory.Storage;
 using Xunit;
 
@@ -15,8 +16,8 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task StoreAsync_Should_StoreMemory()
     {
-        var memory = new AtlasMemory();
-        var entry = CreateMemory();
+        var memory = CreateMemory();
+        var entry = CreateMemoryEntry();
 
         await memory.StoreAsync(
             entry,
@@ -35,8 +36,8 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task GetAsync_Should_ReturnStoredMemory()
     {
-        var memory = new AtlasMemory();
-        var entry = CreateMemory();
+        var memory = CreateMemory();
+        var entry = CreateMemoryEntry();
 
         await memory.StoreAsync(
             entry,
@@ -59,7 +60,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task GetAsync_Should_ReturnNull_WhenMemoryDoesNotExist()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var result = await memory.GetAsync(
             Guid.NewGuid(),
@@ -75,7 +76,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task StoreAsync_Should_ReplaceExistingMemoryWithSameId()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
         var id = Guid.NewGuid();
 
         var first = new AtlasMemoryEntry
@@ -114,8 +115,8 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task StoreAsync_Should_Throw_WhenCancellationRequested()
     {
-        var memory = new AtlasMemory();
-        var entry = CreateMemory();
+        var memory = CreateMemory();
+        var entry = CreateMemoryEntry();
 
         using var cancellationTokenSource = new CancellationTokenSource();
         await cancellationTokenSource.CancelAsync();
@@ -133,7 +134,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_ReturnMatchingMemories()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var matchingEntry = new AtlasMemoryEntry
         {
@@ -172,7 +173,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_BeCaseInsensitive()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var entry = new AtlasMemoryEntry
         {
@@ -200,7 +201,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_ReturnPartialMatches()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var entry = new AtlasMemoryEntry
         {
@@ -228,8 +229,8 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_ReturnEmpty_WhenNoMemoriesMatch()
     {
-        var memory = new AtlasMemory();
-        var entry = CreateMemory();
+        var memory = CreateMemory();
+        var entry = CreateMemoryEntry();
 
         await memory.StoreAsync(
             entry,
@@ -253,8 +254,8 @@ public sealed class AtlasMemoryTests
     public async Task SearchAsync_Should_ReturnEmpty_WhenQueryIsEmpty(
         string query)
     {
-        var memory = new AtlasMemory();
-        var entry = CreateMemory();
+        var memory = CreateMemory();
+        var entry = CreateMemoryEntry();
 
         await memory.StoreAsync(
             entry,
@@ -274,7 +275,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_Throw_WhenCancellationRequested()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         using var cancellationTokenSource = new CancellationTokenSource();
         await cancellationTokenSource.CancelAsync();
@@ -292,7 +293,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_MatchAllTermsInQuery()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var matchingEntry = new AtlasMemoryEntry
         {
@@ -334,7 +335,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_IgnoreRepeatedWhitespaceInQuery()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var entry = new AtlasMemoryEntry
         {
@@ -365,7 +366,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_ReturnNewestMemoriesFirst()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var olderEntry = new AtlasMemoryEntry
         {
@@ -404,7 +405,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_RankExactMatchFirst()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var partialMatch = new AtlasMemoryEntry
         {
@@ -447,7 +448,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_RankMoreRelevantMemoryFirst()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var lessRelevant = new AtlasMemoryEntry
         {
@@ -535,7 +536,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_FilterByMemoryType()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         await memory.StoreAsync(
             new AtlasMemoryEntry
@@ -591,7 +592,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_FilterByTextAndMemoryType()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         await memory.StoreAsync(
             new AtlasMemoryEntry
@@ -648,7 +649,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_ReturnAllMemories_WhenQueryHasNoFilters()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         await memory.StoreAsync(
             new AtlasMemoryEntry
@@ -694,7 +695,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_ExcludeMemoriesMissingQueryTerms()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var completeMatch = new AtlasMemoryEntry
         {
@@ -746,7 +747,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_IgnoreDuplicateQueryTerms()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var cameraMemory = new AtlasMemoryEntry
         {
@@ -793,7 +794,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_BeCaseInsensitive_ForMultipleTerms()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var entry = new AtlasMemoryEntry
         {
@@ -823,7 +824,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_ReturnEmpty_WhenNoMemoryContainsAllQueryTerms()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         await memory.StoreAsync(
             new AtlasMemoryEntry
@@ -856,7 +857,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_ExcludeMatchingMemoriesOfWrongType()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var taskMemory = new AtlasMemoryEntry
         {
@@ -903,7 +904,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_ReturnNewestMemoriesFirst_WhenQueryHasNoFilters()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var olderMemory = new AtlasMemoryEntry
         {
@@ -943,7 +944,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_RankExactPhraseMatchHigher()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var exactPhrase = new AtlasMemoryEntry
         {
@@ -985,7 +986,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_RankMultipleOccurrencesHigher()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var repeated = new AtlasMemoryEntry
         {
@@ -1026,7 +1027,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_RequireAllQueryTerms()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         await memory.StoreAsync(
             new AtlasMemoryEntry
@@ -1065,7 +1066,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_FilterByTypeBeforeRankingResults()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var fact = new AtlasMemoryEntry
         {
@@ -1111,7 +1112,7 @@ public sealed class AtlasMemoryTests
     [Fact]
     public async Task SearchAsync_Should_ReturnNewestMemoriesFirst_WhenQueryIsEmpty()
     {
-        var memory = new AtlasMemory();
+        var memory = CreateMemory();
 
         var older = new AtlasMemoryEntry
         {
@@ -1146,7 +1147,154 @@ public sealed class AtlasMemoryTests
             results.Select(memoryEntry => memoryEntry.Id));
     }
 
-    private static AtlasMemoryEntry CreateMemory()
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.StoreAsync"/> delegates storage
+    /// to the configured memory store.
+    /// </summary>
+    [Fact]
+    public async Task StoreAsync_Should_DelegateToMemoryStore()
+    {
+        var store = new RecordingMemoryStore();
+        var memory = new AtlasMemory(store);
+        var entry = CreateMemoryEntry();
+
+        await memory.StoreAsync(
+            entry,
+            TestContext.Current.CancellationToken);
+
+        Assert.Same(entry, store.StoredMemory);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.GetAsync"/> delegates retrieval
+    /// to the configured memory store.
+    /// </summary>
+    [Fact]
+    public async Task GetAsync_Should_DelegateToMemoryStore()
+    {
+        var entry = CreateMemoryEntry();
+
+        var store = new RecordingMemoryStore
+        {
+            MemoryToReturn = entry
+        };
+
+        var memory = new AtlasMemory(store);
+
+        var result = await memory.GetAsync(
+            entry.Id,
+            TestContext.Current.CancellationToken);
+
+        Assert.Same(entry, result);
+        Assert.Equal(entry.Id, store.RequestedId);
+    }
+
+    /// <summary>
+    /// Verifies that query-based <see cref="AtlasMemory.SearchAsync(AtlasMemoryQuery, CancellationToken)"/>
+    /// delegates the query to the configured memory store.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Query_Should_DelegateToMemoryStore()
+    {
+        var store = new RecordingMemoryStore();
+        var memory = new AtlasMemory(store);
+
+        var query = new AtlasMemoryQuery
+        {
+            Text = "Canon camera",
+            Type = AtlasMemoryType.Fact
+        };
+
+        await memory.SearchAsync(
+            query,
+            TestContext.Current.CancellationToken);
+
+        Assert.Same(query, store.LastQuery);
+    }
+
+    /// <summary>
+    /// Verifies that string-based search normalizes the query before
+    /// delegating it to the configured memory store.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_String_Should_NormalizeQueryBeforeDelegating()
+    {
+        var store = new RecordingMemoryStore();
+        var memory = new AtlasMemory(store);
+
+        await memory.SearchAsync(
+            "  Canon    camera   Canon  ",
+            TestContext.Current.CancellationToken);
+
+        Assert.NotNull(store.LastQuery);
+
+        Assert.Equal(
+            "Canon camera",
+            store.LastQuery.Text);
+    }
+
+    /// <summary>
+    /// Verifies that a blank string search returns an empty result
+    /// without calling the configured memory store.
+    /// </summary>
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public async Task SearchAsync_String_Should_ReturnEmptyWithoutCallingStore(
+        string query)
+    {
+        var store = new RecordingMemoryStore();
+        var memory = new AtlasMemory(store);
+
+        var result = await memory.SearchAsync(
+            query,
+            TestContext.Current.CancellationToken);
+
+        Assert.Empty(result);
+        Assert.Null(store.LastQuery);
+    }
+
+    private sealed class RecordingMemoryStore : IAtlasMemoryStore
+    {
+        public AtlasMemoryEntry? StoredMemory { get; private set; }
+
+        public AtlasMemoryEntry? MemoryToReturn { get; init; }
+
+        public Guid? RequestedId { get; private set; }
+
+        public AtlasMemoryQuery? LastQuery { get; private set; }
+
+        public Task StoreAsync(
+            AtlasMemoryEntry memory,
+            CancellationToken cancellationToken = default)
+        {
+            StoredMemory = memory;
+
+            return Task.CompletedTask;
+        }
+
+        public Task<AtlasMemoryEntry?> GetAsync(
+            Guid id,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedId = id;
+
+            return Task.FromResult(MemoryToReturn);
+        }
+
+        public Task<IReadOnlyList<AtlasMemoryEntry>> SearchAsync(
+            AtlasMemoryQuery query,
+            CancellationToken cancellationToken = default)
+        {
+            LastQuery = query;
+
+            return Task.FromResult<
+                IReadOnlyList<AtlasMemoryEntry>>([]);
+        }
+    }
+
+    private static AtlasMemoryEntry CreateMemoryEntry()
     {
         return new AtlasMemoryEntry
         {
@@ -1154,5 +1302,10 @@ public sealed class AtlasMemoryTests
             Content = "Test memory",
             CreatedAt = DateTimeOffset.UtcNow
         };
+    }
+
+    private static AtlasMemory CreateMemory()
+    {
+        return new AtlasMemory(new InMemoryAtlasMemoryStore());
     }
 }
