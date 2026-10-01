@@ -29,6 +29,12 @@ public sealed class AtlasMemoryServiceCollectionExtensionsTests
                 service =>
                     service.ServiceType == typeof(IAtlasMemoryStore));
 
+        var initializerDescriptor =
+            services.FirstOrDefault(
+                service =>
+                    service.ServiceType ==
+                    typeof(IAtlasMemoryStoreInitializer));
+
         Assert.NotNull(descriptor);
 
         Assert.Equal(
@@ -38,6 +44,16 @@ public sealed class AtlasMemoryServiceCollectionExtensionsTests
         Assert.Equal(
             ServiceLifetime.Singleton,
             descriptor.Lifetime);
+
+        Assert.NotNull(initializerDescriptor);
+
+        Assert.Equal(
+            typeof(InMemoryAtlasMemoryStoreInitializer),
+            initializerDescriptor.ImplementationType);
+
+        Assert.Equal(
+            ServiceLifetime.Singleton,
+            initializerDescriptor.Lifetime);
     }
 
     /// <summary>
@@ -60,6 +76,12 @@ public sealed class AtlasMemoryServiceCollectionExtensionsTests
         var descriptor = services.FirstOrDefault(service =>
             service.ServiceType == typeof(IAtlasMemoryStore));
 
+        var initializerDescriptor =
+            services.FirstOrDefault(
+                service =>
+                    service.ServiceType ==
+                    typeof(IAtlasMemoryStoreInitializer));
+
         Assert.NotNull(descriptor);
 
         Assert.Equal(
@@ -69,6 +91,16 @@ public sealed class AtlasMemoryServiceCollectionExtensionsTests
         Assert.Equal(
             ServiceLifetime.Singleton,
             descriptor.Lifetime);
+
+        Assert.NotNull(initializerDescriptor);
+
+        Assert.Equal(
+            typeof(InMemoryAtlasMemoryStoreInitializer),
+            initializerDescriptor.ImplementationType);
+
+        Assert.Equal(
+            ServiceLifetime.Singleton,
+            initializerDescriptor.Lifetime);
     }
 
     /// <summary>
@@ -92,6 +124,15 @@ public sealed class AtlasMemoryServiceCollectionExtensionsTests
         var storeDescriptor = services.FirstOrDefault(service =>
             service.ServiceType == typeof(IAtlasMemoryStore));
 
+        var dbContextDescriptor = services.FirstOrDefault(service =>
+            service.ServiceType == typeof(DbContextOptions<AtlasMemoryDbContext>));
+
+        var initializerDescriptor =
+            services.FirstOrDefault(
+                service =>
+                    service.ServiceType ==
+                    typeof(IAtlasMemoryStoreInitializer));
+
         Assert.NotNull(storeDescriptor);
 
         Assert.Equal(
@@ -100,10 +141,17 @@ public sealed class AtlasMemoryServiceCollectionExtensionsTests
 
         Assert.Equal(ServiceLifetime.Singleton, storeDescriptor.Lifetime);
 
-        var dbContextDescriptor = services.FirstOrDefault(service =>
-            service.ServiceType == typeof(DbContextOptions<AtlasMemoryDbContext>));
-
         Assert.NotNull(dbContextDescriptor);
+
+        Assert.NotNull(initializerDescriptor);
+
+        Assert.Equal(
+            typeof(EntityFrameworkAtlasMemoryStoreInitializer),
+            initializerDescriptor.ImplementationType);
+
+        Assert.Equal(
+            ServiceLifetime.Singleton,
+            initializerDescriptor.Lifetime);
     }
 
     /// <summary>

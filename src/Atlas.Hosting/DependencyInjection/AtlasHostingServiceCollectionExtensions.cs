@@ -1,5 +1,6 @@
 ﻿using Atlas.Abstractions.Configuration;
 using Atlas.Events.Interfaces;
+using Atlas.Hosting.Memory;
 using Atlas.Hosting.Runtime;
 using Atlas.Hosting.Startup;
 using Microsoft.Extensions.Configuration;
@@ -41,6 +42,9 @@ public static class AtlasHostingServiceCollectionExtensions
         services.AddSingleton<
             IAtlasEventHandlerBase,
             StartupHandler>();
+
+        services.AddHostedService<
+            AtlasMemoryInitializationHostedService>();
 
         services.AddHostedService<AtlasRuntimeHostedService>();
 
