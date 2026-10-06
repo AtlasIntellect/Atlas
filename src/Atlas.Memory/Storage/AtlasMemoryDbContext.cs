@@ -35,12 +35,20 @@ public sealed class AtlasMemoryDbContext(
             .IsRequired();
 
         memory.Property(
+            entity => entity.UpdatedAt)
+            .IsRequired(false);
+
+        memory.Property(
                 entity => entity.Type)
             .IsRequired();
 
         memory.Property(
                 entity => entity.InterpretationType)
             .IsRequired(false);
+
+        memory.Property(
+            entity => entity.LifecycleState)
+            .IsRequired();
 
         memory.Property(
                 entity => entity.InterpretationData)
