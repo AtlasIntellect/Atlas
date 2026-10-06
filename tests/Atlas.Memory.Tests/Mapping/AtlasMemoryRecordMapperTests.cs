@@ -16,7 +16,7 @@ public sealed class AtlasMemoryRecordMapperTests
     [Fact]
     public void ToRecord_Should_MapMemoryFields()
     {
-        var memory = new AtlasMemoryEntry 
+        var memory = new AtlasMemoryEntry
         {
             Id = Guid.NewGuid(),
             Content = "I bought a Canon EOS 350D camera.",
@@ -45,7 +45,7 @@ public sealed class AtlasMemoryRecordMapperTests
     [Fact]
     public void ToRecord_Should_SerializeTaskInterpretation()
     {
-        var taskData = new AtlasTaskData 
+        var taskData = new AtlasTaskData
         {
             Description = "Buy groceries.",
             Status = AtlasTaskStatus.Active,
@@ -65,7 +65,7 @@ public sealed class AtlasMemoryRecordMapperTests
             Content = "I need to buy groceries.",
             CreatedAt = DateTimeOffset.UtcNow,
             Type = AtlasMemoryType.Task,
-            Interpretation = 
+            Interpretation =
                 new AtlasMemoryInterpretation
                 {
                     Data = taskData
@@ -297,5 +297,39 @@ public sealed class AtlasMemoryRecordMapperTests
     {
         Assert.Throws<ArgumentNullException>(
             () => AtlasMemoryRecordMapper.ToMemory(null!));
+    }
+
+    /// <summary>
+    /// Verifies that lifecycle metadata is preserved during a round-trip mapping.
+    /// </summary>
+    [Fact]
+    public void RoundTrip_Should_PreserveLifecycleMetadata()
+    {
+        var updatedAt =
+            DateTimeOffset.UtcNow.AddMinutes(5);
+
+        var entry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Test memory",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = updatedAt,
+            LifecycleState =
+                AtlasMemoryLifecycleState.Archived
+        };
+
+        var record =
+            AtlasMemoryRecordMapper.ToRecord(entry);
+
+        var restored =
+            AtlasMemoryRecordMapper.ToMemory(record);
+
+        Assert.Equal(
+            updatedAt,
+            restored.UpdatedAt);
+
+        Assert.Equal(
+            AtlasMemoryLifecycleState.Archived,
+            restored.LifecycleState);
     }
 }

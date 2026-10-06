@@ -23,7 +23,9 @@ public static class AtlasMemoryRecordMapper
                 Id = memory.Id,
                 Content = memory.Content,
                 CreatedAt = memory.CreatedAt,
-                Type = memory.Type
+                UpdatedAt = memory.UpdatedAt,
+                Type = memory.Type,
+                LifecycleState = memory.LifecycleState
             };
 
         if (memory.Interpretation is null)
@@ -70,7 +72,9 @@ public static class AtlasMemoryRecordMapper
             Id = record.Id,
             Content = record.Content,
             CreatedAt = record.CreatedAt,
+            UpdatedAt = record.UpdatedAt,
             Type = record.Type,
+            LifecycleState = record.LifecycleState,
             Interpretation = interpretation
         };
     }
