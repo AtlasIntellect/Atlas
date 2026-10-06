@@ -1,8 +1,6 @@
-﻿using Atlas.Hosting.DependencyInjection;
-using Atlas.Memory.Interfaces;
+﻿using Atlas.Memory.Interfaces;
 using Atlas.Memory.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+using Atlas.Testing.Persistence;
 using Microsoft.Testing.Platform.Services;
 using Xunit;
 
@@ -20,57 +18,48 @@ public sealed class PersistentMemoryApplicationIntegrationTests
     [Fact]
     public async Task Memory_Should_SurviveApplicationRecreation()
     {
-        var databasePath =
-            Path.Combine(
-                Path.GetTempPath(),
-                $"atlas-memory-{Guid.NewGuid():N}.db");
+        using var environment =
+            new PersistentMemoryTestEnvironment();
 
-        try
-        {
-            var memoryEntry =
-                new AtlasMemoryEntry
-                {
-                    Id = Guid.NewGuid(),
-                    Content = "Atlas persistent memory test",
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    Type = AtlasMemoryType.Fact
-                };
+        var memoryEntry =
+            new AtlasMemoryEntry
+            {
+                Id = Guid.NewGuid(),
+                Content = "Atlas persistent memory test",
+                CreatedAt = DateTimeOffset.UtcNow,
+                Type = AtlasMemoryType.Fact
+            };
 
-            await StoreMemoryAsync(
-                databasePath,
-                memoryEntry);
+        await StoreMemoryAsync(
+            environment,
+            memoryEntry);
 
-            var restoredMemory =
-                await GetMemoryAsync(
-                    databasePath,
-                    memoryEntry.Id);
+        var restoredMemory =
+            await GetMemoryAsync(
+                environment,
+                memoryEntry.Id);
 
-            Assert.NotNull(restoredMemory);
+        Assert.NotNull(restoredMemory);
 
-            Assert.Equal(
-                memoryEntry.Id,
-                restoredMemory.Id);
+        Assert.Equal(
+            memoryEntry.Id,
+            restoredMemory.Id);
 
-            Assert.Equal(
-                memoryEntry.Content,
-                restoredMemory.Content);
+        Assert.Equal(
+            memoryEntry.Content,
+            restoredMemory.Content);
 
-            Assert.Equal(
-                memoryEntry.CreatedAt,
-                restoredMemory.CreatedAt);
+        Assert.Equal(
+            memoryEntry.CreatedAt,
+            restoredMemory.CreatedAt);
 
-            Assert.Equal(
-                memoryEntry.Type,
-                restoredMemory.Type);
+        Assert.Equal(
+            memoryEntry.Type,
+            restoredMemory.Type);
 
-            Assert.Equal(
-                memoryEntry.Interpretation,
-                restoredMemory.Interpretation);
-        }
-        finally
-        {
-            DeleteDatabaseFiles(databasePath);
-        }
+        Assert.Equal(
+            memoryEntry.Interpretation,
+            restoredMemory.Interpretation);
     }
 
     /// <summary>
@@ -80,68 +69,56 @@ public sealed class PersistentMemoryApplicationIntegrationTests
     [Fact]
     public async Task Memory_Should_BeSearchableAfterApplicationRecreation()
     {
-        var databasePath =
-            Path.Combine(
-                Path.GetTempPath(),
-                $"atlas-memory-{Guid.NewGuid():N}.db");
+        using var environment =
+            new PersistentMemoryTestEnvironment();
 
-        try
-        {
-            var memoryEntry =
-                new AtlasMemoryEntry
-                {
-                    Id = Guid.NewGuid(),
-                    Content = "Atlas persistent camera memory",
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    Type = AtlasMemoryType.Fact
-                };
+        var memoryEntry =
+            new AtlasMemoryEntry
+            {
+                Id = Guid.NewGuid(),
+                Content = "Atlas persistent camera memory",
+                CreatedAt = DateTimeOffset.UtcNow,
+                Type = AtlasMemoryType.Fact
+            };
 
-            await StoreMemoryAsync(
-                databasePath,
-                memoryEntry);
+        await StoreMemoryAsync(
+            environment,
+            memoryEntry);
 
-            var results =
-                await SearchMemoryAsync(
-                    databasePath,
-                    "camera");
+        var results =
+            await SearchMemoryAsync(
+                environment,
+                "camera");
 
-            var restoredMemory =
-                Assert.Single(results);
+        var restoredMemory =
+            Assert.Single(results);
 
-            Assert.Equal(
-                memoryEntry.Id,
-                restoredMemory.Id);
+        Assert.Equal(
+            memoryEntry.Id,
+            restoredMemory.Id);
 
-            Assert.Equal(
-                memoryEntry.Content,
-                restoredMemory.Content);
+        Assert.Equal(
+            memoryEntry.Content,
+            restoredMemory.Content);
 
-            Assert.Equal(
-                memoryEntry.CreatedAt,
-                restoredMemory.CreatedAt);
+        Assert.Equal(
+            memoryEntry.CreatedAt,
+            restoredMemory.CreatedAt);
 
-            Assert.Equal(
-                memoryEntry.Type,
-                restoredMemory.Type);
+        Assert.Equal(
+            memoryEntry.Type,
+            restoredMemory.Type);
 
-            Assert.Equal(
-                memoryEntry.Interpretation,
-                restoredMemory.Interpretation);
-        }
-        finally
-        {
-            DeleteDatabaseFiles(databasePath);
-        }
+        Assert.Equal(
+            memoryEntry.Interpretation,
+            restoredMemory.Interpretation);
     }
 
     private static async Task StoreMemoryAsync(
-        string databasePath,
+        PersistentMemoryTestEnvironment environment,
         AtlasMemoryEntry memoryEntry)
     {
-        var builder = CreateBuilder(databasePath);
-
-        builder.Services.AddAtlas(
-            builder.Configuration);
+        var builder = environment.CreateBuilder();
 
         using var host = builder.Build();
 
@@ -160,13 +137,10 @@ public sealed class PersistentMemoryApplicationIntegrationTests
     }
 
     private static async Task<AtlasMemoryEntry?> GetMemoryAsync(
-        string databasePath,
+        PersistentMemoryTestEnvironment environment,
         Guid id)
     {
-        var builder = CreateBuilder(databasePath);
-
-        builder.Services.AddAtlas(
-            builder.Configuration);
+        var builder = environment.CreateBuilder();
 
         using var host = builder.Build();
 
@@ -188,13 +162,10 @@ public sealed class PersistentMemoryApplicationIntegrationTests
     }
 
     private static async Task<IReadOnlyList<AtlasMemoryEntry>> SearchMemoryAsync(
-        string databasePath,
+        PersistentMemoryTestEnvironment environment,
         string query)
     {
-        var builder = CreateBuilder(databasePath);
-
-        builder.Services.AddAtlas(
-            builder.Configuration);
+        var builder = environment.CreateBuilder();
 
         using var host = builder.Build();
 
@@ -213,42 +184,5 @@ public sealed class PersistentMemoryApplicationIntegrationTests
             TestContext.Current.CancellationToken);
 
         return result;
-    }
-
-    private static HostApplicationBuilder CreateBuilder(
-        string databasePath)
-    {
-        var builder =
-            Host.CreateApplicationBuilder();
-
-        builder.Configuration.AddInMemoryCollection(
-            new Dictionary<string, string?>
-            {
-                ["Atlas:Memory:StorageMode"] = "Sqlite",
-                ["ConnectionStrings:AtlasMemory"] =
-                    $"Data Source={databasePath};Pooling=False"
-            });
-
-        return builder;
-    }
-
-    private static void DeleteDatabaseFiles(
-        string databasePath)
-    {
-        var files =
-            new[]
-            {
-                databasePath,
-                $"{databasePath}-shm",
-                $"{databasePath}-wal"
-            };
-
-        foreach (var file in files)
-        {
-            if (File.Exists(file))
-            {
-                File.Delete(file);
-            }
-        }
     }
 }

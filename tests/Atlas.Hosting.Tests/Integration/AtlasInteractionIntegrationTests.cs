@@ -3,9 +3,8 @@ using Atlas.Interaction.Interfaces;
 using Atlas.Interaction.Models;
 using Atlas.Memory.Interfaces;
 using Atlas.Memory.Models;
-using Microsoft.Extensions.Configuration;
+using Atlas.Testing.Persistence;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Atlas.Hosting.Tests.Integration;
@@ -359,50 +358,40 @@ public sealed class AtlasInteractionIntegrationTests
     [Fact]
     public async Task ProcessAsync_Should_PersistNaturalLanguageMemoryAcrossApplicationRecreation()
     {
-        var databasePath =
-            Path.Combine(
-                Path.GetTempPath(),
-                $"atlas-memory-{Guid.NewGuid():N}.db");
+        using var environment =
+            new PersistentMemoryTestEnvironment();
 
-        try
-        {
-            const string memoryContent =
-                "I bought a Canon EOS 350D camera.";
+        const string memoryContent =
+            "I bought a Canon EOS 350D camera.";
 
-            var storeResponse =
-                await ProcessInteractionAsync(
-                    databasePath,
-                    $"Remember that {memoryContent}");
+        var storeResponse =
+            await ProcessInteractionAsync(
+                environment,
+                $"Remember that {memoryContent}");
 
-            Assert.Equal(
-                "Memory stored successfully.",
-                storeResponse.Content);
+        Assert.Equal(
+            "Memory stored successfully.",
+            storeResponse.Content);
 
-            var searchResponse =
-                await ProcessInteractionAsync(
-                    databasePath,
-                    "What camera did I buy?");
+        var searchResponse =
+            await ProcessInteractionAsync(
+                environment,
+                "What camera did I buy?");
 
-            Assert.Contains(
-                memoryContent,
-                searchResponse.Content);
-        }
-        finally
-        {
-            DeleteDatabaseFiles(databasePath);
-        }
+        Assert.Contains(
+            memoryContent,
+            searchResponse.Content);
     }
 
     private static async Task<AtlasResponse> ProcessInteractionAsync(
-        string databasePath,
+        PersistentMemoryTestEnvironment environment,
         string input)
     {
-        var builder = CreateBuilder(databasePath);
+        var builder =
+            environment.CreateBuilder();
 
-        builder.Services.AddAtlas(
-            builder.Configuration);
-
-        using var host = builder.Build();
+        using var host =
+            builder.Build();
 
         await host.StartAsync(
             TestContext.Current.CancellationToken);
@@ -423,44 +412,5 @@ public sealed class AtlasInteractionIntegrationTests
             TestContext.Current.CancellationToken);
 
         return response;
-    }
-
-    private static HostApplicationBuilder CreateBuilder(
-        string databasePath)
-    {
-        var builder =
-            Host.CreateApplicationBuilder();
-
-        builder.Configuration.AddInMemoryCollection(
-            new Dictionary<string, string?>
-            {
-                ["Atlas:Memory:StorageMode"] = "Sqlite",
-                ["ConnectionStrings:AtlasMemory"] =
-                    $"Data Source={databasePath};Pooling=False",
-                ["Atlas:Interaction:InterpreterMode"] =
-                    "Deterministic"
-            });
-
-        return builder;
-    }
-
-    private static void DeleteDatabaseFiles(
-        string databasePath)
-    {
-        var files =
-            new[]
-            {
-                databasePath,
-                $"{databasePath}-shm",
-                $"{databasePath}-wal"
-            };
-
-        foreach (var file in files)
-        {
-            if (File.Exists(file))
-            {
-                File.Delete(file);
-            }
-        }
     }
 }

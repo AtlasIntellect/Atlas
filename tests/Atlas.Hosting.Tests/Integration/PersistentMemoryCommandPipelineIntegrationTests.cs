@@ -2,6 +2,7 @@
 using Atlas.Hosting.DependencyInjection;
 using Atlas.Memory.Commands;
 using Atlas.Memory.Models;
+using Atlas.Testing.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Testing.Platform.Services;
@@ -23,20 +24,16 @@ public sealed class PersistentMemoryCommandPipelineIntegrationTests
     [Fact]
     public async Task MemoryCommands_Should_PersistAcrossApplicationRecreation()
     {
-        var databasePath =
-            Path.Combine(
-                Path.GetTempPath(),
-                $"atlas-memory-{Guid.NewGuid():N}.db");
+        using var environment =
+            new PersistentMemoryTestEnvironment();
 
-        try
-        {
             var storeResult =
                 await StoreMemoryAsync(
-                    databasePath);
+                    environment);
 
             var restoredMemory =
                 await GetMemoryAsync(
-                    databasePath,
+                    environment,
                     storeResult.Id);
 
             Assert.NotNull(restoredMemory);
@@ -63,7 +60,7 @@ public sealed class PersistentMemoryCommandPipelineIntegrationTests
 
             var searchResults =
                 await SearchMemoryAsync(
-                    databasePath,
+                    environment,
                     "persistent command");
 
             var searchedMemory =
@@ -72,24 +69,14 @@ public sealed class PersistentMemoryCommandPipelineIntegrationTests
             Assert.Equal(
                 storeResult.Id,
                 searchedMemory.Id);
-        }
-        finally
-        {
-            DeleteDatabaseFiles(databasePath);
-        }
     }
 
     private static async Task<AtlasMemoryEntry> StoreMemoryAsync(
-        string databasePath)
+        PersistentMemoryTestEnvironment environment)
     {
-        var builder =
-            CreateBuilder(databasePath);
+        var builder = environment.CreateBuilder();
 
-        builder.Services.AddAtlas(
-            builder.Configuration);
-
-        using var host =
-            builder.Build();
+        using var host = builder.Build();
 
         await host.StartAsync(
             TestContext.Current.CancellationToken);
@@ -114,17 +101,12 @@ public sealed class PersistentMemoryCommandPipelineIntegrationTests
     }
 
     private static async Task<AtlasMemoryEntry?> GetMemoryAsync(
-        string databasePath,
+        PersistentMemoryTestEnvironment environment,
         Guid memoryId)
     {
-        var builder =
-            CreateBuilder(databasePath);
+        var builder = environment.CreateBuilder();
 
-        builder.Services.AddAtlas(
-            builder.Configuration);
-
-        using var host =
-            builder.Build();
+        using var host = builder.Build();
 
         await host.StartAsync(
             TestContext.Current.CancellationToken);
@@ -148,17 +130,12 @@ public sealed class PersistentMemoryCommandPipelineIntegrationTests
 
     private static async Task<
         IReadOnlyList<AtlasMemoryEntry>> SearchMemoryAsync(
-        string databasePath,
+        PersistentMemoryTestEnvironment environment,
         string query)
     {
-        var builder =
-            CreateBuilder(databasePath);
+        var builder = environment.CreateBuilder();
 
-        builder.Services.AddAtlas(
-            builder.Configuration);
-
-        using var host =
-            builder.Build();
+        using var host = builder.Build();
 
         await host.StartAsync(
             TestContext.Current.CancellationToken);
@@ -178,42 +155,5 @@ public sealed class PersistentMemoryCommandPipelineIntegrationTests
             TestContext.Current.CancellationToken);
 
         return result;
-    }
-
-    private static HostApplicationBuilder CreateBuilder(
-        string databasePath)
-    {
-        var builder =
-            Host.CreateApplicationBuilder();
-
-        builder.Configuration.AddInMemoryCollection(
-            new Dictionary<string, string?>
-            {
-                ["Atlas:Memory:StorageMode"] = "Sqlite",
-                ["ConnectionStrings:AtlasMemory"] =
-                    $"Data Source={databasePath};Pooling=False"
-            });
-
-        return builder;
-    }
-
-    private static void DeleteDatabaseFiles(
-        string databasePath)
-    {
-        var files =
-            new[]
-            {
-                databasePath,
-                $"{databasePath}-shm",
-                $"{databasePath}-wal"
-            };
-
-        foreach (var file in files)
-        {
-            if (File.Exists(file))
-            {
-                File.Delete(file);
-            }
-        }
     }
 }
