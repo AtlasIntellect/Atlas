@@ -1,10 +1,7 @@
 ﻿using Atlas.Commands.Interfaces;
-using Atlas.Hosting.DependencyInjection;
 using Atlas.Memory.Commands;
 using Atlas.Memory.Models;
 using Atlas.Testing.Persistence;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Testing.Platform.Services;
 using Xunit;
 

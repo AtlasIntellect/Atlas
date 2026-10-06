@@ -1,9 +1,6 @@
-﻿using Atlas.Hosting.DependencyInjection;
-using Atlas.Memory.Storage;
+﻿using Atlas.Memory.Storage;
 using Atlas.Testing.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Testing.Platform.Services;
 using Xunit;
 
