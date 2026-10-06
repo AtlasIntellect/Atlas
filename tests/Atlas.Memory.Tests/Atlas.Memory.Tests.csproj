@@ -25,6 +25,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\Atlas.Memory\Atlas.Memory.csproj" />
+      <ProjectReference Include="..\Atlas.Testing\Atlas.Testing.csproj" />
     </ItemGroup>
 
     <ItemGroup>

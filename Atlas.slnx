@@ -30,5 +30,6 @@
     <Project Path="tests/Atlas.Interaction.Tests/Atlas.Interaction.Tests.csproj" Id="d8ee0e8d-2c0d-4f0c-8ebd-55beeb2e7ce0" />
     <Project Path="tests/Atlas.Memory.Tests/Atlas.Memory.Tests.csproj" Id="6f2b2dc3-7c3a-4d4d-b248-65000e3758c7" />
     <Project Path="tests/Atlas.Runtime.Tests/Atlas.Runtime.Tests.csproj" Id="8a401560-1d4f-4ac7-8a9c-d62baf8b2f20" />
+    <Project Path="tests/Atlas.Testing/Atlas.Testing.csproj" Id="80be1fd8-f1d5-4586-a416-ae2e83e3386d" />
   </Folder>
 </Solution>

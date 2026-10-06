@@ -1,8 +1,6 @@
-﻿using Atlas.Hosting.DependencyInjection;
-using Atlas.Memory.Storage;
+﻿using Atlas.Memory.Storage;
+using Atlas.Testing.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Testing.Platform.Services;
 using Xunit;
 
@@ -20,94 +18,50 @@ public sealed class AtlasMemoryInitializationIntegrationTests
     [Fact]
     public async Task StartAsync_Should_InitializeFreshSqliteMemoryStore()
     {
-        var databasePath =
-            Path.Combine(
-                Path.GetTempPath(),
-                $"atlas-memory-{Guid.NewGuid():N}.db");
+        using var environment =
+            new PersistentMemoryTestEnvironment();
 
-        try
-        {
-            Assert.False(File.Exists(databasePath));
+        using var host =
+            environment.CreateBuilder().Build();
 
-            var builder =
-                Host.CreateApplicationBuilder();
+        await host.StartAsync(
+            TestContext.Current.CancellationToken);
 
-            builder.Configuration.AddInMemoryCollection(
-                new Dictionary<string, string?>
-                {
-                    ["Atlas:Memory:StorageMode"] = "Sqlite",
-                    ["ConnectionStrings:AtlasMemory"] =
-                        $"Data Source={databasePath};Pooling=false"
-                });
+        Assert.True(
+            File.Exists(environment.DatabasePath));
 
-            builder.Services.AddAtlas(
-                builder.Configuration);
+        var factory =
+            host.Services.GetRequiredService<
+                IDbContextFactory<AtlasMemoryDbContext>>();
 
-            using var host =
-                builder.Build();
-
-            await host.StartAsync(
+        await using var dbContext =
+            await factory.CreateDbContextAsync(
                 TestContext.Current.CancellationToken);
 
-            Assert.True(File.Exists(databasePath));
-
-            var factory =
-                host.Services.GetRequiredService<
-                    IDbContextFactory<AtlasMemoryDbContext>>();
-
-            await using var dbContext =
-                await factory.CreateDbContextAsync(
-                    TestContext.Current.CancellationToken);
-
-            var appliedMigrations =
-                await dbContext.Database.GetAppliedMigrationsAsync(
-                    TestContext.Current.CancellationToken);
-
-            Assert.Contains(
-                appliedMigrations,
-                migration => migration.EndsWith(
-                    "_InitialCreate",
-                    StringComparison.Ordinal));
-
-            var pendingMigrations =
-                await dbContext.Database.GetPendingMigrationsAsync(
-                    TestContext.Current.CancellationToken);
-
-            Assert.Empty(pendingMigrations);
-
-            var memories =
-                await dbContext.Memories
-                    .ToListAsync(
-                        TestContext.Current.CancellationToken);
-
-            Assert.Empty(memories);
-
-            await host.StopAsync(
+        var appliedMigrations =
+            await dbContext.Database.GetAppliedMigrationsAsync(
                 TestContext.Current.CancellationToken);
-        }
-        finally
-        {
-            DeleteDatabaseFiles(databasePath);
-        }
-    }
 
-    private static void DeleteDatabaseFiles(
-        string databasePath)
-    {
-        var files =
-            new[]
-            {
-                databasePath,
-                $"{databasePath}-shm",
-                $"{databasePath}-wal"
-            };
+        Assert.Contains(
+            appliedMigrations,
+            migration => migration.EndsWith(
+                "_InitialCreate",
+                StringComparison.Ordinal));
 
-        foreach (var file in files)
-        {
-            if (File.Exists(file))
-            {
-                File.Delete(file);
-            }
-        }
+        var pendingMigrations =
+            await dbContext.Database.GetPendingMigrationsAsync(
+                TestContext.Current.CancellationToken);
+
+        Assert.Empty(pendingMigrations);
+
+        var memories =
+            await dbContext.Memories
+                .ToListAsync(
+                    TestContext.Current.CancellationToken);
+
+        Assert.Empty(memories);
+
+        await host.StopAsync(
+            TestContext.Current.CancellationToken);
     }
 }
