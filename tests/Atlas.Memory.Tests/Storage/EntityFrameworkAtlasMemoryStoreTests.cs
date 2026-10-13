@@ -1,5 +1,7 @@
-﻿using Atlas.Memory.Models;
+﻿using Atlas.Memory.Interfaces;
+using Atlas.Memory.Models;
 using Atlas.Memory.Storage;
+using Atlas.Testing.Persistence;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -342,6 +344,138 @@ public sealed class EntityFrameworkAtlasMemoryStoreTests
                     Text = "camera"
                 },
                 cancellationTokenSource.Token));
+    }
+
+    /// <summary>
+    /// Verifies that updating an existing memory preserves the original
+    /// CreatedAt timestamp and updates the UpdatedAt timestamp.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_Should_Update_Existing_Memory_And_Preserve_CreatedAt()
+    {
+        // Arrange
+        using var environment = new PersistentMemoryTestEnvironment();
+        using var host = environment.CreateBuilder().Build();
+
+        await host.StartAsync(TestContext.Current.CancellationToken);
+
+        var store = host.Services.GetRequiredService<IAtlasMemoryStore>();
+
+        var original = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Original content",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
+            Type = AtlasMemoryType.Fact
+        };
+
+        await store.StoreAsync(original, TestContext.Current.CancellationToken);
+
+        var updated = new AtlasMemoryEntry
+        {
+            Id = original.Id,
+            Content = "Updated content",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Type = AtlasMemoryType.Task,
+            LifecycleState = AtlasMemoryLifecycleState.Archived
+        };
+
+        var updateStartedAt = DateTimeOffset.UtcNow;
+
+        // Act
+        await store.UpdateAsync(updated, TestContext.Current.CancellationToken);
+
+        var result =
+            await store.GetAsync(original.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(original.Id, result.Id);
+        Assert.Equal("Updated content", result.Content);
+        Assert.Equal(original.CreatedAt, result.CreatedAt);
+        Assert.Equal(AtlasMemoryType.Task, result.Type);
+        Assert.Equal(
+            AtlasMemoryLifecycleState.Archived,
+            result.LifecycleState);
+
+        Assert.NotNull(result.UpdatedAt);
+        Assert.True(result.UpdatedAt.Value >= updateStartedAt);
+    }
+
+    /// <summary>
+    /// Verifies that updating a memory that does not exist
+    /// throws a <see cref="KeyNotFoundException"/>.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_Should_Throw_When_Memory_Does_Not_Exist()
+    {
+        // Arrange
+        using var environment = new PersistentMemoryTestEnvironment();
+        using var host = environment.CreateBuilder().Build();
+
+        await host.StartAsync(TestContext.Current.CancellationToken);
+
+        var store = host.Services.GetRequiredService<IAtlasMemoryStore>();
+
+        var memory = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Updated content",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        // Act
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => store.UpdateAsync(memory, TestContext.Current.CancellationToken));
+
+        // Assert
+        Assert.Contains(memory.Id.ToString(), exception.Message);
+    }
+
+    /// <summary>
+    /// Verifies that cancellation is honored when updating a memory.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_Should_Honor_Cancellation()
+    {
+        // Arrange
+        using var environment = new PersistentMemoryTestEnvironment();
+        using var host = environment.CreateBuilder().Build();
+
+        await host.StartAsync(TestContext.Current.CancellationToken);
+
+        var store = host.Services.GetRequiredService<IAtlasMemoryStore>();
+
+        var original = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Original content",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-5)
+        };
+
+        await store.StoreAsync(original, TestContext.Current.CancellationToken);
+
+        var updated = new AtlasMemoryEntry
+        {
+            Id = original.Id,
+            Content = "Updated content",
+            CreatedAt = original.CreatedAt
+        };
+
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+
+        // Act
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => store.UpdateAsync(updated, cancellation.Token));
+
+        // Assert
+        var result =
+            await store.GetAsync(original.Id, TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+        Assert.Equal("Original content", result.Content);
+        Assert.Equal(original.CreatedAt, result.CreatedAt);
     }
 
     private static TestDatabase CreateDatabase()

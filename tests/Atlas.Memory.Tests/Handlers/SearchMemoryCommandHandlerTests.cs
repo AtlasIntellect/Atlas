@@ -43,7 +43,7 @@ public sealed class SearchMemoryCommandHandlerTests
         var result = await handler.HandleAsync(
             new SearchMemoryCommand("matching"),
             TestContext.Current.CancellationToken);
-        
+
         Assert.Equal(entries, result);
     }
 
@@ -169,6 +169,14 @@ public sealed class SearchMemoryCommandHandlerTests
             cancellationToken.ThrowIfCancellationRequested();
 
             return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
+        }
+
+        public Task UpdateAsync(
+            AtlasMemoryEntry memory,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException(
+                "UpdateAsync is not supported by this test double.");
         }
     }
 }

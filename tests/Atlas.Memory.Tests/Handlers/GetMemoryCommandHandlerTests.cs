@@ -187,5 +187,13 @@ public sealed class GetMemoryCommandHandlerTests
 
             return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>([]);
         }
+
+        public Task UpdateAsync(
+            AtlasMemoryEntry memory,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException(
+                "UpdateAsync is not supported by this test double.");
+        }
     }
 }

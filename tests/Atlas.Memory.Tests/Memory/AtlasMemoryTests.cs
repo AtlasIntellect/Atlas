@@ -1255,9 +1255,83 @@ public sealed class AtlasMemoryTests
         Assert.Null(store.LastQuery);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.UpdateAsync"/> delegates the update
+    /// to the configured memory store.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_Should_Delegate_To_Store()
+    {
+        // Arrange
+        var store = new RecordingMemoryStore();
+        var memory = new AtlasMemory(store);
+        var entry = CreateMemoryEntry();
+
+        // Act
+        await memory.UpdateAsync(entry, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Same(entry, store.UpdatedMemory);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.UpdateAsync"/> throws an exception
+    /// when the provided memory entry is null.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_Should_Throw_When_Memory_Is_Null()
+    {
+        // Arrange
+        var store = new RecordingMemoryStore();
+        var memory = new AtlasMemory(store);
+
+        // Act
+        var exception = await Assert.ThrowsAsync<ArgumentNullException>(
+            () => memory.UpdateAsync(null!, TestContext.Current.CancellationToken));
+
+        // Assert
+        Assert.Equal("memory", exception.ParamName);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.UpdateAsync"/> throws an exception
+    /// when the cancellation token is already canceled.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_Should_Throw_When_Cancellation_Is_Requested()
+    {
+        // Arrange
+        var store = new RecordingMemoryStore();
+        var memory = new AtlasMemory(store);
+
+        using var cancellationTokenSource = new CancellationTokenSource();
+        await cancellationTokenSource.CancelAsync();
+
+        var entry = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Updated content",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-5),
+            UpdatedAt = DateTimeOffset.UtcNow,
+            LifecycleState = AtlasMemoryLifecycleState.Active
+        };
+
+        // Act
+        var exception = await Assert.ThrowsAsync<OperationCanceledException>(
+            () => memory.UpdateAsync(entry, cancellationTokenSource.Token));
+
+        // Assert
+        Assert.Equal(
+            cancellationTokenSource.Token,
+            exception.CancellationToken);
+        Assert.Null(store.UpdatedMemory);
+    }
+
     private sealed class RecordingMemoryStore : IAtlasMemoryStore
     {
         public AtlasMemoryEntry? StoredMemory { get; private set; }
+
+        public AtlasMemoryEntry? UpdatedMemory { get; private set; }
 
         public AtlasMemoryEntry? MemoryToReturn { get; init; }
 
@@ -1270,6 +1344,15 @@ public sealed class AtlasMemoryTests
             CancellationToken cancellationToken = default)
         {
             StoredMemory = memory;
+
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateAsync(
+            AtlasMemoryEntry memory,
+            CancellationToken cancellationToken = default)
+        {
+            UpdatedMemory = memory;
 
             return Task.CompletedTask;
         }
