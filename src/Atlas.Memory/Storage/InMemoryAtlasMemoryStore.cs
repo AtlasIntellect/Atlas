@@ -44,7 +44,7 @@ public sealed class InMemoryAtlasMemoryStore : IAtlasMemoryStore
             CreatedAt = existingMemory.CreatedAt,
             UpdatedAt = DateTimeOffset.UtcNow,
             Type = memory.Type,
-            Interpretation = memory.Interpretation,
+            Interpretation = memory.Interpretation ?? existingMemory.Interpretation,
             LifecycleState = memory.LifecycleState
         };
 

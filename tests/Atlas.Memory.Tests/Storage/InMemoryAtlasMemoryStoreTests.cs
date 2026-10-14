@@ -125,4 +125,120 @@ public sealed class InMemoryAtlasMemoryStoreTests
         Assert.Equal("Original content", result.Content);
         Assert.Equal(original.CreatedAt, result.CreatedAt);
     }
+
+    /// <summary>
+    /// Tests that the <see cref="InMemoryAtlasMemoryStore.UpdateAsync"/> method
+    /// preserves the existing interpretation of a memory entry when
+    /// the updated entry does not supply a new interpretation.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_Should_Preserve_Interpretation_When_Not_Supplied()
+    {
+        // Arrange
+        var store = new InMemoryAtlasMemoryStore();
+
+        var original = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Remember to call the dentist",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
+            Interpretation = new AtlasMemoryInterpretation
+            {
+                Data = new AtlasTaskData
+                {
+                    Description = "Call the dentist"
+                }
+            }
+        };
+
+        await store.StoreAsync(original, TestContext.Current.CancellationToken);
+        var stored = await store.GetAsync(original.Id, TestContext.Current.CancellationToken);
+
+        Assert.NotNull(stored);
+        Assert.NotNull(stored.Interpretation);
+
+        var updated = new AtlasMemoryEntry
+        {
+            Id = original.Id,
+            Content = "Remember to call the dentist tomorrow",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Interpretation = null
+        };
+
+        // Act
+        await store.UpdateAsync(updated, TestContext.Current.CancellationToken);
+
+        var result = await store.GetAsync(original.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(
+            "Remember to call the dentist tomorrow",
+            result.Content);
+
+        Assert.NotNull(result.Interpretation);
+
+        var taskData = Assert.IsType<AtlasTaskData>(
+            result.Interpretation.Data);
+
+        Assert.Equal("Call the dentist", taskData.Description);
+    }
+
+    /// <summary>
+    /// Tests that the <see cref="InMemoryAtlasMemoryStore.UpdateAsync"/> method
+    /// replaces the existing interpretation of a memory entry when
+    /// the updated entry supplies a new interpretation.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_Should_Replace_Existing_Interpretation_When_Supplied()
+    {
+        // Arrange
+        var store = new InMemoryAtlasMemoryStore();
+
+        var original = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Call the dentist",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
+            Interpretation = new AtlasMemoryInterpretation
+            {
+                Data = new AtlasTaskData
+                {
+                    Description = "Call the dentist"
+                }
+            }
+        };
+
+        await store.StoreAsync(original, TestContext.Current.CancellationToken);
+
+        var updated = new AtlasMemoryEntry
+        {
+            Id = original.Id,
+            Content = "Call the veterinarian",
+            CreatedAt = original.CreatedAt,
+            Interpretation = new AtlasMemoryInterpretation
+            {
+                Data = new AtlasTaskData
+                {
+                    Description = "Call the veterinarian"
+                }
+            }
+        };
+
+        // Act
+        await store.UpdateAsync(updated, TestContext.Current.CancellationToken);
+
+        var result = await store.GetAsync(
+            original.Id,
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.Interpretation);
+
+        var taskData = Assert.IsType<AtlasTaskData>(
+            result.Interpretation.Data);
+
+        Assert.Equal("Call the veterinarian", taskData.Description);
+    }
 }

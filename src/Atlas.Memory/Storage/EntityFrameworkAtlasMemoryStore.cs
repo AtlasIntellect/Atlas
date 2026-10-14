@@ -74,8 +74,12 @@ public sealed class EntityFrameworkAtlasMemoryStore(
             CreatedAt = existing.CreatedAt,
             UpdatedAt = DateTimeOffset.UtcNow,
             Type = mappedRecord.Type,
-            InterpretationType = mappedRecord.InterpretationType,
-            InterpretationData = mappedRecord.InterpretationData,
+            InterpretationType = memory.Interpretation is null
+                ? existing.InterpretationType
+                : mappedRecord.InterpretationType,
+            InterpretationData = memory.Interpretation is null
+                ? existing.InterpretationData
+                : mappedRecord.InterpretationData,
             LifecycleState = mappedRecord.LifecycleState
         };
 

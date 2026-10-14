@@ -478,6 +478,67 @@ public sealed class EntityFrameworkAtlasMemoryStoreTests
         Assert.Equal(original.CreatedAt, result.CreatedAt);
     }
 
+    /// <summary>
+    /// Verifies that updating a memory with a new interpretation replaces
+    /// the existing interpretation.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_Should_Replace_Existing_Interpretation_When_Supplied()
+    {
+        // Arrange
+        using var environment = new PersistentMemoryTestEnvironment();
+        using var host = environment.CreateBuilder().Build();
+
+        await host.StartAsync(TestContext.Current.CancellationToken);
+
+        var store = host.Services.GetRequiredService<IAtlasMemoryStore>();
+
+        var original = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Call the dentist",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
+            Interpretation = new AtlasMemoryInterpretation
+            {
+                Data = new AtlasTaskData
+                {
+                    Description = "Call the dentist"
+                }
+            }
+        };
+
+        await store.StoreAsync(original, TestContext.Current.CancellationToken);
+
+        var updated = new AtlasMemoryEntry
+        {
+            Id = original.Id,
+            Content = "Call the veterinarian",
+            CreatedAt = original.CreatedAt,
+            Interpretation = new AtlasMemoryInterpretation
+            {
+                Data = new AtlasTaskData
+                {
+                    Description = "Call the veterinarian"
+                }
+            }
+        };
+
+        // Act
+        await store.UpdateAsync(updated, TestContext.Current.CancellationToken);
+
+        var result =
+            await store.GetAsync(original.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.Interpretation);
+
+        var taskData = Assert.IsType<AtlasTaskData>(
+            result.Interpretation.Data);
+
+        Assert.Equal("Call the veterinarian", taskData.Description);
+    }
+
     private static TestDatabase CreateDatabase()
     {
         var connection =
