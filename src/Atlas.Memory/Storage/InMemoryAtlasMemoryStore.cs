@@ -25,6 +25,33 @@ public sealed class InMemoryAtlasMemoryStore : IAtlasMemoryStore
     }
 
     /// <inheritdoc />
+    public Task UpdateAsync(
+        AtlasMemoryEntry memory,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(memory);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!_memories.TryGetValue(memory.Id, out var existingMemory))
+            throw new KeyNotFoundException(
+                $"No memory exists with identifier '{memory.Id}'.");
+
+        _memories[memory.Id] = new AtlasMemoryEntry
+        {
+            Id = existingMemory.Id,
+            Content = memory.Content,
+            CreatedAt = existingMemory.CreatedAt,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Type = memory.Type,
+            Interpretation = memory.Interpretation ?? existingMemory.Interpretation,
+            LifecycleState = memory.LifecycleState
+        };
+
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
     public Task<AtlasMemoryEntry?> GetAsync(
         Guid id,
         CancellationToken cancellationToken = default)
