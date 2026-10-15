@@ -2,6 +2,7 @@
 using Atlas.Memory.Mapping;
 using Atlas.Memory.Models;
 using Microsoft.EntityFrameworkCore;
+using Atlas.Memory.Models.Persistence;
 
 namespace Atlas.Memory.Storage;
 
@@ -37,6 +38,54 @@ public sealed class EntityFrameworkAtlasMemoryStore(
             await dbContext.Memories.AddAsync(record, cancellationToken);
         else
             dbContext.Entry(existing).CurrentValues.SetValues(record);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateAsync(
+        AtlasMemoryEntry memory,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(memory);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await using var dbContext =
+            await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var existing = await dbContext.Memories
+            .SingleOrDefaultAsync(
+                candidate => candidate.Id == memory.Id,
+                cancellationToken);
+
+        if (existing is null)
+        {
+            throw new KeyNotFoundException(
+                $"No memory exists with identifier '{memory.Id}'.");
+        }
+
+        var mappedRecord = AtlasMemoryRecordMapper.ToRecord(memory);
+
+        var updatedRecord = new AtlasMemoryRecord
+        {
+            Id = existing.Id,
+            Content = mappedRecord.Content,
+            CreatedAt = existing.CreatedAt,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Type = mappedRecord.Type,
+            InterpretationType = memory.Interpretation is null
+                ? existing.InterpretationType
+                : mappedRecord.InterpretationType,
+            InterpretationData = memory.Interpretation is null
+                ? existing.InterpretationData
+                : mappedRecord.InterpretationData,
+            LifecycleState = mappedRecord.LifecycleState
+        };
+
+        dbContext.Entry(existing)
+            .CurrentValues
+            .SetValues(updatedRecord);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -103,8 +152,8 @@ public sealed class EntityFrameworkAtlasMemoryStore(
         return
         [
             .. memories
-                .Where(memory => 
-                    terms.All(term => 
+                .Where(memory =>
+                    terms.All(term =>
                         memory.Content.Contains(
                             term,
                             StringComparison.OrdinalIgnoreCase)))

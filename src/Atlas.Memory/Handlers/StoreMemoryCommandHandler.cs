@@ -6,7 +6,7 @@ using Atlas.Memory.Models;
 namespace Atlas.Memory.Handlers;
 
 /// <summary>
-/// 
+/// Handles the <see cref="StoreMemoryCommand"/> to store a memory entry in Atlas.
 /// </summary>
 /// <param name="memory">The Atlas memory service.</param>
 public sealed class StoreMemoryCommandHandler(
