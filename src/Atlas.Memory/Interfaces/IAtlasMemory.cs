@@ -17,6 +17,17 @@ public interface IAtlasMemory
         AtlasMemoryEntry memory,
         CancellationToken cancellationToken = default);
 
+
+    /// <summary>
+    /// Updates an existing memory.
+    /// </summary>
+    /// <param name="memory">The updated memory.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    Task UpdateAsync(
+        AtlasMemoryEntry memory,
+        CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Retrieves a memory by its identifier.
     /// </summary>
