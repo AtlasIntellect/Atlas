@@ -10,19 +10,31 @@ namespace Atlas.Memory.Storage;
 public sealed class AtlasMemory(
     IAtlasMemoryStore store) : IAtlasMemory
 {
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public Task StoreAsync(
         AtlasMemoryEntry memory,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(memory);
-        
+
         cancellationToken.ThrowIfCancellationRequested();
 
         return store.StoreAsync(memory, cancellationToken);
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
+    public Task UpdateAsync(
+        AtlasMemoryEntry memory,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(memory);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return store.UpdateAsync(memory, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public Task<AtlasMemoryEntry?> GetAsync(
         Guid id,
         CancellationToken cancellationToken = default)
@@ -32,7 +44,7 @@ public sealed class AtlasMemory(
         return store.GetAsync(id, cancellationToken);
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public Task<IReadOnlyList<AtlasMemoryEntry>> SearchAsync(
         string query,
         CancellationToken cancellationToken = default)
@@ -63,7 +75,7 @@ public sealed class AtlasMemory(
             cancellationToken);
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public Task<IReadOnlyList<AtlasMemoryEntry>> SearchAsync(
         AtlasMemoryQuery query,
         CancellationToken cancellationToken = default)
