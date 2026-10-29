@@ -10,21 +10,25 @@ namespace Atlas.Memory.Tests.Models;
 public sealed class AtlasMemoryEntryTests
 {
     /// <summary>
-    /// Tests that the default value of the <see cref="AtlasMemoryEntry.Type"/> property is <see cref="AtlasMemoryType.Fact"/>.
+    /// Tests that the default value of the <see cref="AtlasMemoryEntry.Type"/>
+    /// property is <see cref="AtlasMemoryType.Fact"/>.
     /// </summary>
     [Fact]
     public void Type_Should_DefaultToFact()
     {
         var entry = new AtlasMemoryEntry
         {
-            Id = Guid.NewGuid(), Content = "Test memory", CreatedAt = DateTimeOffset.UtcNow
+            Id = Guid.NewGuid(),
+            Content = "Test memory",
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         Assert.Equal(AtlasMemoryType.Fact, entry.Type);
     }
 
     /// <summary>
-    /// Tests that the <see cref="AtlasMemoryEntry.Type"/> property supports all defined values of the <see cref="AtlasMemoryType"/> enum.
+    /// Tests that the <see cref="AtlasMemoryEntry.Type"/> property supports
+    /// all defined values of the <see cref="AtlasMemoryType"/> enum.
     /// </summary>
     /// <param name="type"></param>
     [Theory]
@@ -36,7 +40,10 @@ public sealed class AtlasMemoryEntryTests
     {
         var entry = new AtlasMemoryEntry
         {
-            Id = Guid.NewGuid(), Content = "Test memory", CreatedAt = DateTimeOffset.UtcNow, Type = type
+            Id = Guid.NewGuid(),
+            Content = "Test memory",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Type = type
         };
 
         Assert.Equal(type, entry.Type);
@@ -64,9 +71,10 @@ public sealed class AtlasMemoryEntryTests
         Assert.Equal(interpretation, entry.Interpretation);
         Assert.Equal(interpretation.Data, entry.Interpretation.Data);
     }
-    
+
     /// <summary>
-    /// Tests that the default value of the <see cref="AtlasMemoryEntry.LifecycleState"/> property is <see cref="AtlasMemoryLifecycleState.Active"/>.
+    /// Tests that the default value of the <see cref="AtlasMemoryEntry.LifecycleState"/>
+    /// property is <see cref="AtlasMemoryLifecycleState.Active"/>.
     /// </summary>
     [Fact]
     public void LifecycleState_Should_DefaultToActive()
@@ -84,7 +92,8 @@ public sealed class AtlasMemoryEntryTests
     }
 
     /// <summary>
-    /// Tests that the default value of the <see cref="AtlasMemoryEntry.UpdatedAt"/> property is null.
+    /// Tests that the default value of the <see cref="AtlasMemoryEntry.UpdatedAt"/>
+    /// property is null.
     /// </summary>
     [Fact]
     public void UpdatedAt_Should_DefaultToNull()
@@ -100,7 +109,8 @@ public sealed class AtlasMemoryEntryTests
     }
 
     /// <summary>
-    /// Tests that the <see cref="AtlasMemoryEntry.LifecycleState"/> property supports all defined values of the <see cref="AtlasMemoryLifecycleState"/> enum.
+    /// Tests that the <see cref="AtlasMemoryEntry.LifecycleState"/> property supports
+    /// all defined values of the <see cref="AtlasMemoryLifecycleState"/> enum.
     /// </summary>
     /// <param name="state"></param>
     [Theory]
@@ -120,6 +130,31 @@ public sealed class AtlasMemoryEntryTests
         Assert.Equal(
             state,
             entry.LifecycleState);
+    }
+
+    /// <summary>
+    /// Verifies that confidence rejects values outside the range [0.0, 1.0]
+    /// and non-finite values.
+    /// </summary>
+    [Theory]
+    [InlineData(-0.01)]
+    [InlineData(1.01)]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    public void Confidence_Should_Reject_Invalid_Values(double confidence)
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        {
+            _ = new AtlasMemoryEntry
+            {
+                Id = Guid.NewGuid(),
+                Content = "Test memory",
+                CreatedAt = DateTimeOffset.UtcNow,
+                Confidence = confidence
+            };
+        });
     }
 
     private sealed class AtlasMemoryDataMock : IAtlasMemoryData

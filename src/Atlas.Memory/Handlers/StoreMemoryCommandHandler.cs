@@ -29,7 +29,9 @@ public sealed class StoreMemoryCommandHandler(
                 : new AtlasMemoryInterpretation
                 {
                     Data = command.Data
-                }
+                },
+            Confidence = command.Confidence,
+            Provenance = command.Provenance
         };
 
         await memory.StoreAsync(

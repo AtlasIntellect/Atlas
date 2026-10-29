@@ -23,6 +23,9 @@ namespace Atlas.Memory.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<double?>("Confidence")
+                        .HasColumnType("REAL");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -38,6 +41,9 @@ namespace Atlas.Memory.Migrations
 
                     b.Property<int>("LifecycleState")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("ProvenanceData")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Type")
                         .HasColumnType("INTEGER");

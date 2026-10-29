@@ -80,7 +80,10 @@ public sealed class EntityFrameworkAtlasMemoryStore(
             InterpretationData = memory.Interpretation is null
                 ? existing.InterpretationData
                 : mappedRecord.InterpretationData,
-            LifecycleState = mappedRecord.LifecycleState
+            LifecycleState = mappedRecord.LifecycleState,
+            Confidence = memory.Confidence ?? existing.Confidence,
+            ProvenanceData = memory.Provenance is null
+                ? existing.ProvenanceData : mappedRecord.ProvenanceData
         };
 
         dbContext.Entry(existing)
@@ -213,7 +216,9 @@ public sealed class EntityFrameworkAtlasMemoryStore(
             Type = existing.Type,
             InterpretationType = existing.InterpretationType,
             InterpretationData = existing.InterpretationData,
-            LifecycleState = AtlasMemoryLifecycleState.Archived
+            LifecycleState = AtlasMemoryLifecycleState.Archived,
+            Confidence = existing.Confidence,
+            ProvenanceData = existing.ProvenanceData
         };
 
         dbContext.Entry(existing).CurrentValues.SetValues(archivedRecord);

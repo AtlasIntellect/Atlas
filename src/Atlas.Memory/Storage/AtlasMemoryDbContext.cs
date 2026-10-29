@@ -26,38 +26,35 @@ public sealed class AtlasMemoryDbContext(
         memory.HasKey(
             entity => entity.Id);
 
-        memory.Property(
-                entity => entity.Content)
+        memory.Property(entity => entity.Content)
             .IsRequired();
 
-        memory.Property(
-                entity => entity.CreatedAt)
+        memory.Property(entity => entity.CreatedAt)
             .IsRequired();
 
-        memory.Property(
-            entity => entity.UpdatedAt)
+        memory.Property(entity => entity.UpdatedAt)
             .IsRequired(false);
 
-        memory.Property(
-                entity => entity.Type)
+        memory.Property(entity => entity.Type)
             .IsRequired();
 
-        memory.Property(
-                entity => entity.InterpretationType)
+        memory.Property(entity => entity.InterpretationType)
             .IsRequired(false);
 
-        memory.Property(
-            entity => entity.LifecycleState)
+        memory.Property(entity => entity.LifecycleState)
             .IsRequired();
 
-        memory.Property(
-                entity => entity.InterpretationData)
+        memory.Property(entity => entity.InterpretationData)
             .IsRequired(false);
 
-        memory.HasIndex(
-            entity => entity.CreatedAt);
+        memory.Property(entity => entity.Confidence)
+            .IsRequired(false);
 
-        memory.HasIndex(
-            entity => entity.Type);
+        memory.Property(entity => entity.ProvenanceData)
+            .IsRequired(false);
+
+        memory.HasIndex(entity => entity.CreatedAt);
+
+        memory.HasIndex(entity => entity.Type);
     }
 }

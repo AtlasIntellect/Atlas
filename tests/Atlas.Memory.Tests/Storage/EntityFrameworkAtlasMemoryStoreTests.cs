@@ -540,8 +540,9 @@ public sealed class EntityFrameworkAtlasMemoryStoreTests
     }
 
     /// <summary>
-    /// Verifies that archiving a memory entry preserves its content, creation time, type, and interpretation, and
-    /// updates its lifecycle state and updated timestamp appropriately.
+    /// Verifies that archiving a memory preserves its content, creation time,
+    /// type, interpretation, confidence, and provenance while updating its
+    /// lifecycle state and updated timestamp.
     /// </summary>
     [Fact]
     public async Task ArchiveAsync_Should_Preserve_Memory_And_Interpretation()
@@ -554,12 +555,25 @@ public sealed class EntityFrameworkAtlasMemoryStoreTests
 
         var store = host.Services.GetRequiredService<IAtlasMemoryStore>();
 
+        var provenance = new AtlasMemoryProvenance
+        {
+            SourceType = AtlasMemorySourceType.Conversation,
+            SourceId = "conversation-123",
+            Description = "Explicit user statement",
+            Metadata = new Dictionary<string, string>
+            {
+                ["method"] = "explicit-statement"
+            }
+        };
+
         var original = new AtlasMemoryEntry
         {
             Id = Guid.NewGuid(),
             Content = "Call the dentist",
             CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
             Type = AtlasMemoryType.Task,
+            Confidence = 0.91,
+            Provenance = provenance,
             Interpretation = new AtlasMemoryInterpretation
             {
                 Data = new AtlasTaskData
@@ -594,6 +608,16 @@ public sealed class EntityFrameworkAtlasMemoryStoreTests
             result.Interpretation.Data);
 
         Assert.Equal("Call the dentist", taskData.Description);
+
+        Assert.Equal(0.91, result.Confidence);
+
+        Assert.NotNull(result.Provenance);
+        Assert.Equal(provenance.SourceType, result.Provenance.SourceType);
+        Assert.Equal(provenance.SourceId, result.Provenance.SourceId);
+        Assert.Equal(provenance.Description, result.Provenance.Description);
+        Assert.Equal(
+            "explicit-statement",
+            result.Provenance.Metadata["method"]);
     }
 
     /// <summary>
@@ -747,6 +771,74 @@ public sealed class EntityFrameworkAtlasMemoryStoreTests
             cancellationToken);
 
         Assert.Contains(results, entry => entry.Id == archived.Id);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="IAtlasMemoryStore.UpdateAsync"/> method preserves the 
+    /// <see cref="AtlasMemoryEntry.Confidence"/> and <see cref="AtlasMemoryEntry.Provenance"/> properties 
+    /// of an existing memory entry when these properties are not supplied in the updated entry.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_Should_PreserveConfidenceAndProvenance_When_Not_Supplied()
+    {
+        using var environment = new PersistentMemoryTestEnvironment();
+        using var host = environment.CreateBuilder().Build();
+
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await host.StartAsync(cancellationToken);
+
+        var store = host.Services.GetRequiredService<IAtlasMemoryStore>();
+
+        var provenance = new AtlasMemoryProvenance
+        {
+            SourceType = AtlasMemorySourceType.Conversation,
+            SourceId = "conversation-123",
+            Description = "Explicit user statement",
+            Metadata = new Dictionary<string, string>
+            {
+                ["method"] = "explicit-statement"
+            }
+        };
+
+        var original = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Original content",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
+            Confidence = 0.91,
+            Provenance = provenance
+        };
+
+        await store.StoreAsync(original, cancellationToken);
+
+        var updated = new AtlasMemoryEntry
+        {
+            Id = original.Id,
+            Content = "Updated content",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        // Act
+        await store.UpdateAsync(updated, cancellationToken);
+
+        var result = await store.GetAsync(
+            original.Id,
+            cancellationToken);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("Updated content", result.Content);
+        Assert.Equal(original.Id, result.Id);
+        Assert.Equal(original.CreatedAt, result.CreatedAt);
+        Assert.Equal(0.91, result.Confidence);
+
+        Assert.NotNull(result.Provenance);
+        Assert.Equal(provenance.SourceType, result.Provenance.SourceType);
+        Assert.Equal(provenance.SourceId, result.Provenance.SourceId);
+        Assert.Equal(provenance.Description, result.Provenance.Description);
+        Assert.Equal(
+            "explicit-statement",
+            result.Provenance.Metadata["method"]);
     }
 
     private static TestDatabase CreateDatabase()

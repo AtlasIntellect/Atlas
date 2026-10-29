@@ -243,8 +243,8 @@ public sealed class InMemoryAtlasMemoryStoreTests
     }
 
     /// <summary>
-    /// Verifies that archiving an existing memory entry updates
-    /// its lifecycle state to archived and preserves its data.
+    /// Verifies that archiving an existing memory preserves its data,
+    /// confidence, and provenance while updating its lifecycle state.
     /// </summary>
     [Fact]
     public async Task ArchiveAsync_Should_Archive_Existing_Memory_And_Preserve_Data()
@@ -253,12 +253,25 @@ public sealed class InMemoryAtlasMemoryStoreTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new InMemoryAtlasMemoryStore();
 
+        var provenance = new AtlasMemoryProvenance
+        {
+            SourceType = AtlasMemorySourceType.Conversation,
+            SourceId = "conversation-123",
+            Description = "Explicit user statement",
+            Metadata = new Dictionary<string, string>
+            {
+                ["method"] = "explicit-statement"
+            }
+        };
+
         var original = new AtlasMemoryEntry
         {
             Id = Guid.NewGuid(),
             Content = "Call the dentist",
             CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
             Type = AtlasMemoryType.Task,
+            Confidence = 0.91,
+            Provenance = provenance,
             Interpretation = new AtlasMemoryInterpretation
             {
                 Data = new AtlasTaskData
@@ -276,12 +289,12 @@ public sealed class InMemoryAtlasMemoryStoreTests
 
         var result = await store.GetAsync(original.Id, cancellationToken);
 
-        // Assert
         Assert.NotNull(result);
         Assert.Equal(original.Id, result.Id);
         Assert.Equal(original.Content, result.Content);
         Assert.Equal(original.CreatedAt, result.CreatedAt);
         Assert.Equal(original.Type, result.Type);
+
         Assert.Equal(
             AtlasMemoryLifecycleState.Archived,
             result.LifecycleState);
@@ -290,10 +303,31 @@ public sealed class InMemoryAtlasMemoryStoreTests
         Assert.True(result.UpdatedAt.Value >= archiveStartedAt);
 
         Assert.NotNull(result.Interpretation);
+
         var taskData = Assert.IsType<AtlasTaskData>(
             result.Interpretation.Data);
 
         Assert.Equal("Call the dentist", taskData.Description);
+
+        Assert.Equal(0.91, result.Confidence);
+
+        Assert.NotNull(result.Provenance);
+
+        Assert.Equal(
+            provenance.SourceType,
+            result.Provenance.SourceType);
+
+        Assert.Equal(
+            provenance.SourceId,
+            result.Provenance.SourceId);
+
+        Assert.Equal(
+            provenance.Description,
+            result.Provenance.Description);
+
+        Assert.Equal(
+            "explicit-statement",
+            result.Provenance.Metadata["method"]);
     }
 
     /// <summary>
@@ -440,5 +474,70 @@ public sealed class InMemoryAtlasMemoryStoreTests
 
         // Assert
         Assert.Contains(results, entry => entry.Id == archived.Id);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="InMemoryAtlasMemoryStore.UpdateAsync"/> method preserves
+    /// the <see cref="AtlasMemoryEntry.Confidence"/> and <see cref="AtlasMemoryEntry.Provenance"/>
+    /// properties of an existing memory entry when they are not supplied in the update request.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_Should_PreserveConfidenceAndProvenance_When_Not_Supplied()
+    {
+        // Arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var store = new InMemoryAtlasMemoryStore();
+
+        var provenance = new AtlasMemoryProvenance
+        {
+            SourceType = AtlasMemorySourceType.Conversation,
+            SourceId = "conversation-123",
+            Description = "Explicit user statement",
+            Metadata = new Dictionary<string, string>
+            {
+                ["method"] = "explicit-statement"
+            }
+        };
+
+        var original = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Original content",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
+            Confidence = 0.91,
+            Provenance = provenance
+        };
+
+        await store.StoreAsync(original, cancellationToken);
+
+        // Deliberately omit confidence and provenance from the update.
+        var updated = new AtlasMemoryEntry
+        {
+            Id = original.Id,
+            Content = "Updated content",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        // Act
+        await store.UpdateAsync(updated, cancellationToken);
+
+        var result = await store.GetAsync(
+            original.Id,
+            cancellationToken);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("Updated content", result.Content);
+        Assert.Equal(original.Id, result.Id);
+        Assert.Equal(original.CreatedAt, result.CreatedAt);
+        Assert.Equal(0.91, result.Confidence);
+
+        Assert.NotNull(result.Provenance);
+        Assert.Equal(provenance.SourceType, result.Provenance.SourceType);
+        Assert.Equal(provenance.SourceId, result.Provenance.SourceId);
+        Assert.Equal(provenance.Description, result.Provenance.Description);
+        Assert.Equal(
+            "explicit-statement",
+            result.Provenance.Metadata["method"]);
     }
 }
