@@ -103,6 +103,22 @@ public static class AtlasMemoryServiceCollectionExtensions
             .AddSingleton<IAtlasCommandHandlerBase>(
                 provider =>
                     provider.GetRequiredService<UpdateMemoryCommandHandler>())
+            .AddSingleton<ArchiveMemoryCommandHandler>()
+            .AddSingleton<
+                IAtlasCommandHandler<ArchiveMemoryCommand, AtlasMemoryEntry>>(
+                provider =>
+                    provider.GetRequiredService<ArchiveMemoryCommandHandler>())
+            .AddSingleton<IAtlasCommandHandlerBase>(
+                provider =>
+                    provider.GetRequiredService<ArchiveMemoryCommandHandler>())
+            .AddSingleton<DeleteMemoryCommandHandler>()
+            .AddSingleton<
+                IAtlasCommandHandler<DeleteMemoryCommand, bool>>(
+                provider =>
+                    provider.GetRequiredService<DeleteMemoryCommandHandler>())
+            .AddSingleton<IAtlasCommandHandlerBase>(
+                provider =>
+                    provider.GetRequiredService<DeleteMemoryCommandHandler>())
             .AddSingleton<GetMemoryCommandHandler>()
             .AddSingleton<IAtlasCommandHandler<GetMemoryCommand, AtlasMemoryEntry?>>(
                 provider =>

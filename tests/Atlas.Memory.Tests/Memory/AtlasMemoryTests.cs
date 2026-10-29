@@ -1327,17 +1327,107 @@ public sealed class AtlasMemoryTests
         Assert.Null(store.UpdatedMemory);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.ArchiveAsync"/> delegates
+    /// the archive operation to the underlying store.
+    /// </summary>
+    [Fact]
+    public async Task ArchiveAsync_Should_Delegate_To_Store()
+    {
+        // Arrange
+        var store = new RecordingMemoryStore();
+        var memory = new AtlasMemory(store);
+        var id = Guid.NewGuid();
+
+        // Act
+        await memory.ArchiveAsync(id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(id, store.ArchivedId);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="AtlasMemory.DeleteAsync"/> method delegates
+    /// the delete operation to the underlying store.
+    /// </summary>
+    [Fact]
+    public async Task DeleteAsync_Should_Delegate_To_Store()
+    {
+        // Arrange
+        var store = new RecordingMemoryStore();
+        var memory = new AtlasMemory(store);
+        var id = Guid.NewGuid();
+
+        // Act
+        await memory.DeleteAsync(id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(id, store.DeletedId);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.ArchiveAsync"/> honors cancellation by throwing an
+    /// <exception cref="OperationCanceledException"></exception> when the cancellation
+    /// token is canceled before invocation.
+    /// </summary>
+    [Fact]
+    public async Task ArchiveAsync_Should_Honor_Cancellation()
+    {
+        // Arrange
+        var store = new RecordingMemoryStore();
+        var memory = new AtlasMemory(store);
+        var id = Guid.NewGuid();
+
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+
+        // Act
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => memory.ArchiveAsync(id, cancellation.Token));
+
+        // Assert
+        Assert.Null(store.ArchivedId);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="AtlasMemory.DeleteAsync"/> honors cancellation requests by throwing an
+    /// <exception cref="OperationCanceledException"></exception> and does not
+    /// delete the item when canceled.
+    /// </summary>
+    [Fact]
+    public async Task DeleteAsync_Should_Honor_Cancellation()
+    {
+        // Arrange
+        var store = new RecordingMemoryStore();
+        var memory = new AtlasMemory(store);
+        var id = Guid.NewGuid();
+
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+
+        // Act
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => memory.DeleteAsync(id, cancellation.Token));
+
+        // Assert
+        Assert.Null(store.DeletedId);
+    }
+
     private sealed class RecordingMemoryStore : IAtlasMemoryStore
     {
         public AtlasMemoryEntry? StoredMemory { get; private set; }
 
         public AtlasMemoryEntry? UpdatedMemory { get; private set; }
 
+        public AtlasMemoryQuery? LastQuery { get; private set; }
+
         public AtlasMemoryEntry? MemoryToReturn { get; init; }
 
         public Guid? RequestedId { get; private set; }
 
-        public AtlasMemoryQuery? LastQuery { get; private set; }
+        public Guid? ArchivedId { get; private set; }
+
+        public Guid? DeletedId { get; private set; }
 
         public Task StoreAsync(
             AtlasMemoryEntry memory,
@@ -1374,6 +1464,28 @@ public sealed class AtlasMemoryTests
 
             return Task.FromResult<
                 IReadOnlyList<AtlasMemoryEntry>>([]);
+        }
+
+        public Task ArchiveAsync(
+            Guid id,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ArchivedId = id;
+
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteAsync(
+            Guid id,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            DeletedId = id;
+
+            return Task.CompletedTask;
         }
     }
 

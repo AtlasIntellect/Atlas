@@ -87,6 +87,12 @@ public sealed class InMemoryAtlasMemoryStore : IAtlasMemoryStore
 
         var memories = _memories.Values.AsEnumerable();
 
+        if (!query.IncludeArchived)
+        {
+            memories = memories.Where(memory =>
+                memory.LifecycleState == AtlasMemoryLifecycleState.Active);
+        }
+
         if (query.Type is not null)
         {
             memories = memories.Where(
@@ -128,6 +134,48 @@ public sealed class InMemoryAtlasMemoryStore : IAtlasMemoryStore
                 .Select(
                     result => result.Memory)
         ]);
+    }
+
+    /// <inheritdoc />
+    public Task ArchiveAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!_memories.TryGetValue(id, out var existingMemory))
+            throw new KeyNotFoundException(
+                $"No memory exists with identifier '{id}'.");
+
+        // Arhciving an already archived memory is an idempotent no-op.
+        if (existingMemory.LifecycleState == AtlasMemoryLifecycleState.Archived)
+            return Task.CompletedTask;
+
+        _memories[id] = new AtlasMemoryEntry
+        {
+            Id = existingMemory.Id,
+            Content = existingMemory.Content,
+            CreatedAt = existingMemory.CreatedAt,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Type = existingMemory.Type,
+            Interpretation = existingMemory.Interpretation,
+            LifecycleState = AtlasMemoryLifecycleState.Archived
+        };
+
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public Task DeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Remove returns false when the ID is absent; repeated deletion is harmless.
+        _memories.Remove(id);
+
+        return Task.CompletedTask;
     }
 
     private static int CalculateRelevance(

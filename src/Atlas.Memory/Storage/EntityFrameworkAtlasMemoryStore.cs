@@ -133,6 +133,12 @@ public sealed class EntityFrameworkAtlasMemoryStore(
         var memories =
             records.Select(AtlasMemoryRecordMapper.ToMemory).AsEnumerable();
 
+        if (!query.IncludeArchived)
+        {
+            memories = memories.Where(memory =>
+                memory.LifecycleState == AtlasMemoryLifecycleState.Active);
+        }
+
         var terms =
             string.IsNullOrWhiteSpace(query.Text) ? [] : query.Text.Split(
                 (char[]?)null, StringSplitOptions.RemoveEmptyEntries)
@@ -173,6 +179,68 @@ public sealed class EntityFrameworkAtlasMemoryStore(
                 .Select(
                     result => result.Memory)
         ];
+    }
+
+    /// <inheritdoc />
+    public async Task ArchiveAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await using var dbContext =
+            await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var existing = await dbContext.Memories.SingleOrDefaultAsync(
+            memory => memory.Id == id,
+            cancellationToken);
+
+        if (existing is null)
+            throw new KeyNotFoundException(
+                $"No memory exists with identifies '{id}'.");
+
+        if (existing.LifecycleState == AtlasMemoryLifecycleState.Archived)
+            return;
+
+        // Build a replacement value set because these lifecycle properties
+        // are init-only on AtlasMemoryRecord.
+        var archivedRecord = new AtlasMemoryRecord
+        {
+            Id = existing.Id,
+            Content = existing.Content,
+            CreatedAt = existing.CreatedAt,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Type = existing.Type,
+            InterpretationType = existing.InterpretationType,
+            InterpretationData = existing.InterpretationData,
+            LifecycleState = AtlasMemoryLifecycleState.Archived
+        };
+
+        dbContext.Entry(existing).CurrentValues.SetValues(archivedRecord);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await using var dbContext =
+            await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var existing = await dbContext.Memories.SingleOrDefaultAsync(
+            memory => memory.Id == id,
+            cancellationToken);
+
+        if (existing is null)
+            return;
+
+        dbContext.Memories.Remove(existing);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private static int CalculateRelevance(

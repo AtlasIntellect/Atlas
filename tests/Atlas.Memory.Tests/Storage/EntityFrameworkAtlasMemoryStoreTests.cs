@@ -539,6 +539,216 @@ public sealed class EntityFrameworkAtlasMemoryStoreTests
         Assert.Equal("Call the veterinarian", taskData.Description);
     }
 
+    /// <summary>
+    /// Verifies that archiving a memory entry preserves its content, creation time, type, and interpretation, and
+    /// updates its lifecycle state and updated timestamp appropriately.
+    /// </summary>
+    [Fact]
+    public async Task ArchiveAsync_Should_Preserve_Memory_And_Interpretation()
+    {
+        using var environment = new PersistentMemoryTestEnvironment();
+        using var host = environment.CreateBuilder().Build();
+
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await host.StartAsync(cancellationToken);
+
+        var store = host.Services.GetRequiredService<IAtlasMemoryStore>();
+
+        var original = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Call the dentist",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
+            Type = AtlasMemoryType.Task,
+            Interpretation = new AtlasMemoryInterpretation
+            {
+                Data = new AtlasTaskData
+                {
+                    Description = "Call the dentist"
+                }
+            }
+        };
+
+        await store.StoreAsync(original, cancellationToken);
+        var archiveStartedAt = DateTimeOffset.UtcNow;
+
+        await store.ArchiveAsync(original.Id, cancellationToken);
+
+        var result = await store.GetAsync(original.Id, cancellationToken);
+
+        Assert.NotNull(result);
+        Assert.Equal(original.Id, result.Id);
+        Assert.Equal(original.Content, result.Content);
+        Assert.Equal(original.CreatedAt, result.CreatedAt);
+        Assert.Equal(original.Type, result.Type);
+        Assert.Equal(
+            AtlasMemoryLifecycleState.Archived,
+            result.LifecycleState);
+
+        Assert.NotNull(result.UpdatedAt);
+        Assert.True(result.UpdatedAt.Value >= archiveStartedAt);
+
+        Assert.NotNull(result.Interpretation);
+
+        var taskData = Assert.IsType<AtlasTaskData>(
+            result.Interpretation.Data);
+
+        Assert.Equal("Call the dentist", taskData.Description);
+    }
+
+    /// <summary>
+    /// Verifies that ArchiveAsync throws a <exception cref="KeyNotFoundException"></exception>
+    /// when attempting to archive a non-existent memory.
+    /// </summary>
+    [Fact]
+    public async Task ArchiveAsync_Should_Throw_When_Memory_Does_Not_Exist()
+    {
+        using var environment = new PersistentMemoryTestEnvironment();
+        using var host = environment.CreateBuilder().Build();
+
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await host.StartAsync(cancellationToken);
+
+        var store = host.Services.GetRequiredService<IAtlasMemoryStore>();
+        var id = Guid.NewGuid();
+
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => store.ArchiveAsync(id, cancellationToken));
+
+        Assert.Contains(id.ToString(), exception.Message);
+    }
+
+    /// <summary>
+    /// Verifies that deleting a memory entry using <see cref="IAtlasMemoryStore.DeleteAsync(Guid, CancellationToken)"/>
+    /// removes it permanently from the memory store.
+    /// </summary>
+    [Fact]
+    public async Task DeleteAsync_Should_Permanently_Remove_Memory()
+    {
+        using var environment = new PersistentMemoryTestEnvironment();
+        using var host = environment.CreateBuilder().Build();
+
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await host.StartAsync(cancellationToken);
+
+        var store = host.Services.GetRequiredService<IAtlasMemoryStore>();
+
+        var memory = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Memory to delete",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        await store.StoreAsync(memory, cancellationToken);
+        await store.DeleteAsync(memory.Id, cancellationToken);
+
+        Assert.Null(await store.GetAsync(memory.Id, cancellationToken));
+
+        var results = await store.SearchAsync(
+            new AtlasMemoryQuery { IncludeArchived = true },
+            cancellationToken);
+
+        Assert.DoesNotContain(results, entry => entry.Id == memory.Id);
+    }
+
+    /// <summary>
+    /// Verifies that deleting an item asynchronously multiple times does not result in an error and the item remains
+    /// deleted.
+    /// </summary>
+    [Fact]
+    public async Task DeleteAsync_Should_Be_Idempotent()
+    {
+        using var environment = new PersistentMemoryTestEnvironment();
+        using var host = environment.CreateBuilder().Build();
+
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await host.StartAsync(cancellationToken);
+
+        var store = host.Services.GetRequiredService<IAtlasMemoryStore>();
+        var id = Guid.NewGuid();
+
+        await store.DeleteAsync(id, cancellationToken);
+        await store.DeleteAsync(id, cancellationToken);
+
+        Assert.Null(await store.GetAsync(id, cancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that archived memories are excluded by default when searching asynchronously.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_Exclude_Archived_Memories_By_Default()
+    {
+        using var environment = new PersistentMemoryTestEnvironment();
+        using var host = environment.CreateBuilder().Build();
+
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await host.StartAsync(cancellationToken);
+
+        var store = host.Services.GetRequiredService<IAtlasMemoryStore>();
+
+        var active = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Dentist appointment",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        var archived = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Dentist appointment history",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-5)
+        };
+
+        await store.StoreAsync(active, cancellationToken);
+        await store.StoreAsync(archived, cancellationToken);
+        await store.ArchiveAsync(archived.Id, cancellationToken);
+
+        var results = await store.SearchAsync(
+            new AtlasMemoryQuery { Text = "Dentist" },
+            cancellationToken);
+
+        Assert.Contains(results, entry => entry.Id == active.Id);
+        Assert.DoesNotContain(results, entry => entry.Id == archived.Id);
+    }
+
+    /// <summary>
+    /// Verifies that archived memories are included in search results when requested.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_Include_Archived_Memories_When_Requested()
+    {
+        using var environment = new PersistentMemoryTestEnvironment();
+        using var host = environment.CreateBuilder().Build();
+
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await host.StartAsync(cancellationToken);
+
+        var store = host.Services.GetRequiredService<IAtlasMemoryStore>();
+
+        var archived = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Dentist appointment history",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        await store.StoreAsync(archived, cancellationToken);
+        await store.ArchiveAsync(archived.Id, cancellationToken);
+
+        var results = await store.SearchAsync(
+            new AtlasMemoryQuery
+            {
+                Text = "Dentist",
+                IncludeArchived = true
+            },
+            cancellationToken);
+
+        Assert.Contains(results, entry => entry.Id == archived.Id);
+    }
+
     private static TestDatabase CreateDatabase()
     {
         var connection =

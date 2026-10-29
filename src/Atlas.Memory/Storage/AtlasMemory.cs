@@ -86,4 +86,24 @@ public sealed class AtlasMemory(
 
         return store.SearchAsync(query, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task ArchiveAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return store.ArchiveAsync(id, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task DeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return store.DeleteAsync(id, cancellationToken);
+    }
 }

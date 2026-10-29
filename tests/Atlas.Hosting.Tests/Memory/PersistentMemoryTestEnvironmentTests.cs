@@ -189,4 +189,186 @@ public sealed class PersistentMemoryTestEnvironmentTests
             await secondHost.StopAsync(cancellationToken);
         }
     }
+
+    /// <summary>
+    /// Verifies that a memory archive persists across application recreation
+    /// when using the same persistent-memory test environment.
+    /// </summary>
+    [Fact]
+    public async Task ArchiveMemoryCommand_Should_Persist_Across_Application_Recreation()
+    {
+        using var environment = new PersistentMemoryTestEnvironment();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        Guid memoryId;
+        DateTimeOffset createdAt;
+
+        // First application: store and archive through the command dispatcher.
+        using (var firstHost = environment.CreateBuilder().Build())
+        {
+            await firstHost.StartAsync(cancellationToken);
+
+            var dispatcher = firstHost.Services
+                .GetRequiredService<IAtlasCommandDispatcher>();
+
+            var original = await dispatcher.DispatchAsync<
+                StoreMemoryCommand,
+                AtlasMemoryEntry>(
+                new StoreMemoryCommand(
+                    "Dentist appointment history",
+                    AtlasMemoryType.Task,
+                    new AtlasTaskData
+                    {
+                        Description = "Call the dentist"
+                    }),
+                cancellationToken);
+
+            var archived = await dispatcher.DispatchAsync<
+                ArchiveMemoryCommand,
+                AtlasMemoryEntry>(
+                new ArchiveMemoryCommand(original.Id),
+                cancellationToken);
+
+            Assert.Equal(original.Id, archived.Id);
+            Assert.Equal(original.CreatedAt, archived.CreatedAt);
+            Assert.Equal(
+                AtlasMemoryLifecycleState.Archived,
+                archived.LifecycleState);
+            Assert.NotNull(archived.UpdatedAt);
+
+            memoryId = archived.Id;
+            createdAt = archived.CreatedAt;
+
+            await firstHost.StopAsync(cancellationToken);
+        }
+
+        // Second application: verify persistence and search behavior.
+        using (var secondHost = environment.CreateBuilder().Build())
+        {
+            await secondHost.StartAsync(cancellationToken);
+
+            var memory = secondHost.Services
+                .GetRequiredService<IAtlasMemory>();
+
+            var persisted = await memory.GetAsync(
+                memoryId,
+                cancellationToken);
+
+            Assert.NotNull(persisted);
+            Assert.Equal(memoryId, persisted.Id);
+            Assert.Equal(createdAt, persisted.CreatedAt);
+            Assert.Equal(
+                AtlasMemoryLifecycleState.Archived,
+                persisted.LifecycleState);
+            Assert.NotNull(persisted.UpdatedAt);
+
+            // Archived memories are excluded from normal search.
+            var activeResults = await memory.SearchAsync(
+                new AtlasMemoryQuery
+                {
+                    Text = "dentist"
+                },
+                cancellationToken);
+
+            Assert.DoesNotContain(
+                activeResults,
+                entry => entry.Id == memoryId);
+
+            // Explicitly requesting archived memories finds the entry.
+            var archivedResults = await memory.SearchAsync(
+                new AtlasMemoryQuery
+                {
+                    Text = "dentist",
+                    IncludeArchived = true
+                },
+                cancellationToken);
+
+            Assert.Contains(
+                archivedResults,
+                entry => entry.Id == memoryId);
+
+            await secondHost.StopAsync(cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a memory deletion persists across application recreation
+    /// when using the same persistent-memory test environment.
+    /// </summary>
+    [Fact]
+    public async Task DeleteMemoryCommand_Should_Persist_Across_Application_Recreation()
+    {
+        using var environment = new PersistentMemoryTestEnvironment();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        Guid memoryId;
+
+        // First application: store and permanently delete through the dispatcher.
+        using (var firstHost = environment.CreateBuilder().Build())
+        {
+            await firstHost.StartAsync(cancellationToken);
+
+            var dispatcher = firstHost.Services
+                .GetRequiredService<IAtlasCommandDispatcher>();
+
+            var original = await dispatcher.DispatchAsync<
+                StoreMemoryCommand,
+                AtlasMemoryEntry>(
+                new StoreMemoryCommand(
+                    "Memory to permanently delete",
+                    AtlasMemoryType.Fact),
+                cancellationToken);
+
+            memoryId = original.Id;
+
+            var deleted = await dispatcher.DispatchAsync<
+                DeleteMemoryCommand,
+                bool>(
+                new DeleteMemoryCommand(memoryId),
+                cancellationToken);
+
+            Assert.True(deleted);
+
+            // Deleting the same ID again is deterministic and harmless.
+            var deletedAgain = await dispatcher.DispatchAsync<
+                DeleteMemoryCommand,
+                bool>(
+                new DeleteMemoryCommand(memoryId),
+                cancellationToken);
+
+            Assert.True(deletedAgain);
+
+            await firstHost.StopAsync(cancellationToken);
+        }
+
+        // Second application: prove the record is still gone.
+        using (var secondHost = environment.CreateBuilder().Build())
+        {
+            await secondHost.StartAsync(cancellationToken);
+
+            var memory = secondHost.Services
+                .GetRequiredService<IAtlasMemory>();
+
+            var persisted = await memory.GetAsync(
+                memoryId,
+                cancellationToken);
+
+            Assert.Null(persisted);
+
+            // Even explicitly including archived memories cannot find a deleted entry.
+            var results = await memory.SearchAsync(
+                new AtlasMemoryQuery
+                {
+                    Text = "permanently delete",
+                    IncludeArchived = true
+                },
+                cancellationToken);
+
+            Assert.DoesNotContain(
+                results,
+                entry => entry.Id == memoryId);
+
+            await secondHost.StopAsync(cancellationToken);
+        }
+    }
 }

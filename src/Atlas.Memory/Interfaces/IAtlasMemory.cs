@@ -63,4 +63,28 @@ public interface IAtlasMemory
     Task<IReadOnlyList<AtlasMemoryEntry>> SearchAsync(
         AtlasMemoryQuery query,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Archives an existing memory without permanently deleting it.
+    /// </summary>
+    /// <param name="id">The identifier of the memory to archive.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <exception cref="KeyNotFoundException">
+    /// Thrown when no memory exists with the specified identifier.
+    /// </exception>
+    Task ArchiveAsync(
+        Guid id,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Permanently deletes a memory.
+    /// Deleting a memory that does not exist has no effect.
+    /// </summary>
+    /// <param name="id">The identifier of the memory to delete.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    Task DeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken = default);
 }
