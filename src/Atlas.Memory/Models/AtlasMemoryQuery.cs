@@ -14,4 +14,10 @@ public sealed record AtlasMemoryQuery
     /// Gets the memory type to include.
     /// </summary>
     public AtlasMemoryType? Type { get; init; }
+
+    /// <summary>
+    /// Gets whether to archived memories should be included in search results.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    public bool IncludeArchived { get; init; }
 }

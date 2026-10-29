@@ -178,5 +178,21 @@ public sealed class SearchMemoryCommandHandlerTests
             throw new NotSupportedException(
                 "UpdateAsync is not supported by this test double.");
         }
+
+        public Task ArchiveAsync(
+            Guid id,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException(
+                "ArchiveAsync is not supported by this test double.");
+        }
+
+        public Task DeleteAsync(
+            Guid id,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException(
+                "DeleteAsync is not supported by this test double.");
+        }
     }
 }
