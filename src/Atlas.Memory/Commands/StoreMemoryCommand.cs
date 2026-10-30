@@ -11,4 +11,6 @@ namespace Atlas.Memory.Commands;
 public sealed record StoreMemoryCommand(
     string Content,
     AtlasMemoryType Type,
-    IAtlasMemoryData? Data = null) : AtlasCommand, IAtlasCommand;
+    IAtlasMemoryData? Data = null,
+    double? Confidence = null,
+    AtlasMemoryProvenance? Provenance = null) : AtlasCommand, IAtlasCommand;

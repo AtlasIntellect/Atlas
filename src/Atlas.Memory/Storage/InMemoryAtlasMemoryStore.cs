@@ -45,7 +45,9 @@ public sealed class InMemoryAtlasMemoryStore : IAtlasMemoryStore
             UpdatedAt = DateTimeOffset.UtcNow,
             Type = memory.Type,
             Interpretation = memory.Interpretation ?? existingMemory.Interpretation,
-            LifecycleState = memory.LifecycleState
+            LifecycleState = memory.LifecycleState,
+            Confidence = memory.Confidence ?? existingMemory.Confidence,
+            Provenance = memory.Provenance ?? existingMemory.Provenance
         };
 
         return Task.CompletedTask;
@@ -159,7 +161,9 @@ public sealed class InMemoryAtlasMemoryStore : IAtlasMemoryStore
             UpdatedAt = DateTimeOffset.UtcNow,
             Type = existingMemory.Type,
             Interpretation = existingMemory.Interpretation,
-            LifecycleState = AtlasMemoryLifecycleState.Archived
+            LifecycleState = AtlasMemoryLifecycleState.Archived,
+            Confidence = existingMemory.Confidence,
+            Provenance = existingMemory.Provenance
         };
 
         return Task.CompletedTask;

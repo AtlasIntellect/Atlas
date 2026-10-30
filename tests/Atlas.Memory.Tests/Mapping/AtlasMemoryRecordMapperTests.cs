@@ -243,6 +243,18 @@ public sealed class AtlasMemoryRecordMapperTests
                         0,
                         TimeSpan.Zero)
                 }
+            },
+            Confidence = 0.85,
+            Provenance = new AtlasMemoryProvenance
+            {
+                SourceType = AtlasMemorySourceType.Conversation,
+                SourceId = "conversation-123",
+                Description = "Extracted from a conversation",
+                Metadata = new Dictionary<string, string>
+                {
+                    ["speaker"] = "user",
+                    ["method"] = "explicit-statement"
+                }
             }
         };
 
@@ -257,6 +269,27 @@ public sealed class AtlasMemoryRecordMapperTests
         Assert.Equal(original.CreatedAt, result.CreatedAt);
 
         Assert.Equal(original.Type, result.Type);
+
+        Assert.Equal(original.Confidence, result.Confidence);
+
+        Assert.NotNull(result.Provenance);
+
+        Assert.Equal(original.Provenance.SourceType, result.Provenance.SourceType);
+
+        Assert.Equal(original.Provenance.SourceId, result.Provenance.SourceId);
+
+        Assert.Equal(original.Provenance.Description, result.Provenance.Description);
+
+        Assert.Equal(original.Provenance.Metadata.Count, result.Provenance.Metadata.Count);
+
+        foreach (var (key, value) in original.Provenance.Metadata)
+        {
+            Assert.True(
+                result.Provenance.Metadata.TryGetValue(key, out var actualValue),
+                $"original provenance metadata key '{key}' was missing.");
+
+            Assert.Equal(value, actualValue);
+        }
 
         var originalInterpretation = Assert.IsType<AtlasMemoryInterpretation>(
             original.Interpretation);
@@ -315,7 +348,19 @@ public sealed class AtlasMemoryRecordMapperTests
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = updatedAt,
             LifecycleState =
-                AtlasMemoryLifecycleState.Archived
+                AtlasMemoryLifecycleState.Archived,
+            Confidence = 0.85,
+            Provenance = new AtlasMemoryProvenance
+            {
+                SourceType = AtlasMemorySourceType.Conversation,
+                SourceId = "conversation-123",
+                Description = "Extracted from a conversation",
+                Metadata = new Dictionary<string, string>
+                {
+                    ["speaker"] = "user",
+                    ["method"] = "explicit-statement"
+                }
+            }
         };
 
         var record =
@@ -324,12 +369,8 @@ public sealed class AtlasMemoryRecordMapperTests
         var restored =
             AtlasMemoryRecordMapper.ToMemory(record);
 
-        Assert.Equal(
-            updatedAt,
-            restored.UpdatedAt);
+        Assert.Equal(updatedAt, restored.UpdatedAt);
 
-        Assert.Equal(
-            AtlasMemoryLifecycleState.Archived,
-            restored.LifecycleState);
+        Assert.Equal(AtlasMemoryLifecycleState.Archived, restored.LifecycleState);
     }
 }

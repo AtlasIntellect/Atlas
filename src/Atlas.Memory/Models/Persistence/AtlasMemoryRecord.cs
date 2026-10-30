@@ -44,4 +44,14 @@ public sealed class AtlasMemoryRecord
     /// Gets or sets the serialized structured interpretation data.
     /// </summary>
     public string? InterpretationData { get; set; }
+
+    /// <summary>
+    /// Gets the optional confidence value persisted for this memory.
+    /// </summary>
+    public double? Confidence { get; init; }
+
+    /// <summary>
+    /// Gets the serialized provenance metadata, or null if none is present.
+    /// </summary>
+    public string? ProvenanceData { get; init; }
 }

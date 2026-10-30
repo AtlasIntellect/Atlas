@@ -25,7 +25,10 @@ public static class AtlasMemoryRecordMapper
                 CreatedAt = memory.CreatedAt,
                 UpdatedAt = memory.UpdatedAt,
                 Type = memory.Type,
-                LifecycleState = memory.LifecycleState
+                LifecycleState = memory.LifecycleState,
+                Confidence = memory.Confidence,
+                ProvenanceData = memory.Provenance is null
+                    ? null : JsonSerializer.Serialize(memory.Provenance)
             };
 
         if (memory.Interpretation is null)
@@ -75,7 +78,11 @@ public static class AtlasMemoryRecordMapper
             UpdatedAt = record.UpdatedAt,
             Type = record.Type,
             LifecycleState = record.LifecycleState,
-            Interpretation = interpretation
+            Interpretation = interpretation,
+            Confidence = record.Confidence,
+            Provenance = record.ProvenanceData is null
+                ? null : JsonSerializer.Deserialize<AtlasMemoryProvenance>(
+                    record.ProvenanceData)
         };
     }
 

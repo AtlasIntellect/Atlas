@@ -89,8 +89,8 @@ public sealed class PersistentMemoryTestEnvironmentTests
     }
 
     /// <summary>
-    /// Verifies that a memory update persists across application recreation
-    /// when using the same persistent-memory test environment.
+    /// Verifies that an update preserves confidence and provenance across
+    /// application recreation when using persistent memory storage.
     /// </summary>
     [Fact]
     public async Task UpdateMemoryCommand_Should_Persist_Across_Application_Recreation()
@@ -100,11 +100,25 @@ public sealed class PersistentMemoryTestEnvironmentTests
 
         var cancellationToken = TestContext.Current.CancellationToken;
 
+        var expectedProvenance = new AtlasMemoryProvenance
+        {
+            SourceType = AtlasMemorySourceType.Conversation,
+            SourceId = "conversation-123",
+            Description = "Explicit user statement",
+            Metadata = new Dictionary<string, string>
+            {
+                ["method"] = "explicit-statement",
+                ["speaker"] = "user"
+            }
+        };
+
+        const double expectedConfidence = 0.91;
+
         Guid memoryId;
         DateTimeOffset createdAt;
         DateTimeOffset updatedAt;
 
-        // First application: store and update the memory through the dispatcher.
+        // First application: create and update the memory through the dispatcher.
         using (var firstHost = environment.CreateBuilder().Build())
         {
             await firstHost.StartAsync(cancellationToken);
@@ -121,8 +135,19 @@ public sealed class PersistentMemoryTestEnvironmentTests
                     new AtlasTaskData
                     {
                         Description = "Call the dentist"
-                    }),
+                    },
+                    Confidence: expectedConfidence,
+                    Provenance: expectedProvenance),
                 cancellationToken);
+
+            Assert.Equal(expectedConfidence, original.Confidence);
+            Assert.NotNull(original.Provenance);
+            Assert.Equal(
+                expectedProvenance.SourceType,
+                original.Provenance.SourceType);
+            Assert.Equal(
+                expectedProvenance.SourceId,
+                original.Provenance.SourceId);
 
             var updated = await dispatcher.DispatchAsync<
                 UpdateMemoryCommand,
@@ -133,13 +158,28 @@ public sealed class PersistentMemoryTestEnvironmentTests
                     AtlasMemoryType.Task),
                 cancellationToken);
 
-            // Assert the update result.
             Assert.Equal(original.Id, updated.Id);
-            Assert.Equal(
-                "Call the dentist tomorrow",
-                updated.Content);
+            Assert.Equal("Call the dentist tomorrow", updated.Content);
             Assert.Equal(original.CreatedAt, updated.CreatedAt);
             Assert.NotNull(updated.UpdatedAt);
+
+            Assert.Equal(expectedConfidence, updated.Confidence);
+            Assert.NotNull(updated.Provenance);
+            Assert.Equal(
+                expectedProvenance.SourceType,
+                updated.Provenance.SourceType);
+            Assert.Equal(
+                expectedProvenance.SourceId,
+                updated.Provenance.SourceId);
+            Assert.Equal(
+                expectedProvenance.Description,
+                updated.Provenance.Description);
+            Assert.Equal(
+                "explicit-statement",
+                updated.Provenance.Metadata["method"]);
+            Assert.Equal(
+                "user",
+                updated.Provenance.Metadata["speaker"]);
 
             Assert.NotNull(updated.Interpretation);
 
@@ -155,7 +195,7 @@ public sealed class PersistentMemoryTestEnvironmentTests
             await firstHost.StopAsync(cancellationToken);
         }
 
-        // Second application: read the memory from the same SQLite database.
+        // Second application: retrieve the memory from the same SQLite database.
         using (var secondHost = environment.CreateBuilder().Build())
         {
             await secondHost.StartAsync(cancellationToken);
@@ -167,24 +207,38 @@ public sealed class PersistentMemoryTestEnvironmentTests
                 memoryId,
                 cancellationToken);
 
-            // Assert the update survived application recreation.
             Assert.NotNull(persisted);
             Assert.Equal(memoryId, persisted.Id);
-            Assert.Equal(
-                "Call the dentist tomorrow",
-                persisted.Content);
+            Assert.Equal("Call the dentist tomorrow", persisted.Content);
             Assert.Equal(createdAt, persisted.CreatedAt);
             Assert.Equal(updatedAt, persisted.UpdatedAt);
             Assert.Equal(AtlasMemoryType.Task, persisted.Type);
+
+            Assert.Equal(expectedConfidence, persisted.Confidence);
+
+            Assert.NotNull(persisted.Provenance);
+            Assert.Equal(
+                expectedProvenance.SourceType,
+                persisted.Provenance.SourceType);
+            Assert.Equal(
+                expectedProvenance.SourceId,
+                persisted.Provenance.SourceId);
+            Assert.Equal(
+                expectedProvenance.Description,
+                persisted.Provenance.Description);
+            Assert.Equal(
+                "explicit-statement",
+                persisted.Provenance.Metadata["method"]);
+            Assert.Equal(
+                "user",
+                persisted.Provenance.Metadata["speaker"]);
 
             Assert.NotNull(persisted.Interpretation);
 
             var persistedTaskData = Assert.IsType<AtlasTaskData>(
                 persisted.Interpretation.Data);
 
-            Assert.Equal(
-                "Call the dentist",
-                persistedTaskData.Description);
+            Assert.Equal("Call the dentist", persistedTaskData.Description);
 
             await secondHost.StopAsync(cancellationToken);
         }
