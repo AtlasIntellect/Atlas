@@ -43,13 +43,14 @@ jobs:
           /o:"${{ secrets.SONAR_ORGANIZATION_KEY }}" \
           /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
           /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+          /d:sonar.cs.vscoveragexml.reportsPaths="${{ github.workspace }}/coverage.xml"
 
       - name: Build
-        run: dotnet build --no-restore
+        run: dotnet build --no-restore --no-incremental
 
       - name: Test with Coverage
-        run: dotnet test --no-restore
+        run: |
+          dotnet-coverage collect 'dotnet test --no-build' -f xml -o "${{ github.workspace }}/coverage.xml"
 
       - name: End Sonar Analysis
         env:
