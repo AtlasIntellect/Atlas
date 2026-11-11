@@ -37,6 +37,7 @@ jobs:
         run: dotnet restore
 
       - name: Begin Sonar Analysis
+        if: github.actor != 'dependabot[bot]'
         run: |
           dotnet sonarscanner begin \
           /k:"${{ secrets.SONAR_PROJECT_KEY }}" \
@@ -53,6 +54,7 @@ jobs:
           dotnet-coverage collect 'dotnet test --no-build' -f xml -o "${{ github.workspace }}/coverage.xml"
 
       - name: End Sonar Analysis
+        if: github.actor != 'dependabot[bot]'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
