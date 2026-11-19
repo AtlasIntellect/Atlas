@@ -540,4 +540,98 @@ public sealed class InMemoryAtlasMemoryStoreTests
             "explicit-statement",
             result.Provenance.Metadata["method"]);
     }
+
+    /// <summary>
+    /// Verifies that expired memories are excluded by default when searching the memory store.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_Exclude_Expired_Memories_By_Default()
+    {
+        // Arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var store = new InMemoryAtlasMemoryStore();
+
+        var now = DateTimeOffset.UtcNow;
+
+        var permanent = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Permanent reminder",
+            CreatedAt = now
+        };
+
+        var future = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Future reminder",
+            CreatedAt = now,
+            ExpiresAt = now.AddDays(1)
+        };
+
+        var expired = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Expired reminder",
+            CreatedAt = now.AddDays(-2),
+            ExpiresAt = now.AddDays(-1)
+        };
+
+        await store.StoreAsync(permanent, cancellationToken);
+        await store.StoreAsync(future, cancellationToken);
+        await store.StoreAsync(expired, cancellationToken);
+
+        // Act
+        var results = await store.SearchAsync(
+            new AtlasMemoryQuery { Text = "reminder" },
+            cancellationToken);
+
+        // Assert
+        Assert.Contains(results, entry => entry.Id == permanent.Id);
+        Assert.Contains(results, entry => entry.Id == future.Id);
+        Assert.DoesNotContain(results, entry => entry.Id == expired.Id);
+
+        // Expiration must not delete the memory.
+        var expiredMemory = await store.GetAsync(
+            expired.Id,
+            cancellationToken);
+
+        Assert.NotNull(expiredMemory);
+        Assert.NotNull(expiredMemory.ExpiresAt);
+        Assert.True(expiredMemory.ExpiresAt.Value <= DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>
+    /// Verifies that expired memories are included in search results when requested.
+    /// </summary>
+    [Fact]
+    public async Task SearchAsync_Should_Include_Expired_Memories_When_Requested()
+    {
+        // Arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var store = new InMemoryAtlasMemoryStore();
+
+        var now = DateTimeOffset.UtcNow;
+
+        var expired = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Expired reminder",
+            CreatedAt = now.AddDays(-2),
+            ExpiresAt = now.AddDays(-1)
+        };
+
+        await store.StoreAsync(expired, cancellationToken);
+
+        // Act
+        var results = await store.SearchAsync(
+            new AtlasMemoryQuery
+            {
+                Text = "reminder",
+                IncludeExpired = true
+            },
+            cancellationToken);
+
+        // Assert
+        Assert.Contains(results, entry => entry.Id == expired.Id);
+    }
 }

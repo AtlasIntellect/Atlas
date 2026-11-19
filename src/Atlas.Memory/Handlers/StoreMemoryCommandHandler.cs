@@ -31,7 +31,9 @@ public sealed class StoreMemoryCommandHandler(
                     Data = command.Data
                 },
             Confidence = command.Confidence,
-            Provenance = command.Provenance
+            Provenance = command.Provenance,
+            Importance = command.Importance,
+            ExpiresAt = command.ExpiresAt
         };
 
         await memory.StoreAsync(

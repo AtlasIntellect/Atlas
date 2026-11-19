@@ -83,7 +83,9 @@ public sealed class EntityFrameworkAtlasMemoryStore(
             LifecycleState = mappedRecord.LifecycleState,
             Confidence = memory.Confidence ?? existing.Confidence,
             ProvenanceData = memory.Provenance is null
-                ? existing.ProvenanceData : mappedRecord.ProvenanceData
+                ? existing.ProvenanceData : mappedRecord.ProvenanceData,
+            Importance = memory.Importance,
+            ExpiresAt = memory.ExpiresAt
         };
 
         dbContext.Entry(existing)
@@ -135,6 +137,14 @@ public sealed class EntityFrameworkAtlasMemoryStore(
 
         var memories =
             records.Select(AtlasMemoryRecordMapper.ToMemory).AsEnumerable();
+
+        if (!query.IncludeExpired)
+        {
+            var now = DateTimeOffset.UtcNow;
+
+            memories = memories.Where(memory =>
+                memory.ExpiresAt is null || memory.ExpiresAt > now);
+        }
 
         if (!query.IncludeArchived)
         {
@@ -218,7 +228,9 @@ public sealed class EntityFrameworkAtlasMemoryStore(
             InterpretationData = existing.InterpretationData,
             LifecycleState = AtlasMemoryLifecycleState.Archived,
             Confidence = existing.Confidence,
-            ProvenanceData = existing.ProvenanceData
+            ProvenanceData = existing.ProvenanceData,
+            Importance = existing.Importance,
+            ExpiresAt = existing.ExpiresAt
         };
 
         dbContext.Entry(existing).CurrentValues.SetValues(archivedRecord);

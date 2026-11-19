@@ -1,4 +1,5 @@
-﻿using Atlas.Memory.Models.Persistence;
+﻿using Atlas.Memory.Models;
+using Atlas.Memory.Models.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Atlas.Memory.Storage;
@@ -51,6 +52,13 @@ public sealed class AtlasMemoryDbContext(
             .IsRequired(false);
 
         memory.Property(entity => entity.ProvenanceData)
+            .IsRequired(false);
+        
+        memory.Property(entity => entity.Importance)
+            .IsRequired()
+            .HasDefaultValue(AtlasMemoryImportance.Normal);
+
+        memory.Property(entity => entity.ExpiresAt)
             .IsRequired(false);
 
         memory.HasIndex(entity => entity.CreatedAt);
