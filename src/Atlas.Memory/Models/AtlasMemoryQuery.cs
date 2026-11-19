@@ -20,4 +20,9 @@ public sealed record AtlasMemoryQuery
     /// Defaults to <see langword="false"/>.
     /// </summary>
     public bool IncludeArchived { get; init; }
+
+    /// <summary>
+    /// Gets whether to expired memories should be included in search results.
+    /// </summary>
+    public bool IncludeExpired { get; init; }
 }

@@ -69,4 +69,18 @@ public sealed class AtlasMemoryEntry
     /// Gets the optinal provenance describing where this memory originated
     /// </summary>
     public AtlasMemoryProvenance? Provenance { get; init; }
+
+
+    /// <summary>
+    /// Gets the importance assigned to this memory.
+    /// Defaults to <see cref="AtlasMemoryImportance.Normal"/>
+    /// when no explicit importance is supplied.
+    /// </summary>
+    public AtlasMemoryImportance Importance { get; init; } = AtlasMemoryImportance.Normal;
+
+    /// <summary>
+    /// Gets the optional timestamp after which this memory is considered expired.
+    /// Null indicates that the memory does not expire.
+    /// </summary>
+    public DateTimeOffset? ExpiresAt { get; init; }
 }

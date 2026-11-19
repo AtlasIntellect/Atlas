@@ -112,6 +112,9 @@ public sealed class PersistentMemoryTestEnvironmentTests
             }
         };
 
+        var expectedExpiration = DateTimeOffset.UtcNow.AddDays(7);
+        
+        const AtlasMemoryImportance expectedImportance = AtlasMemoryImportance.High;
         const double expectedConfidence = 0.91;
 
         Guid memoryId;
@@ -137,7 +140,9 @@ public sealed class PersistentMemoryTestEnvironmentTests
                         Description = "Call the dentist"
                     },
                     Confidence: expectedConfidence,
-                    Provenance: expectedProvenance),
+                    Provenance: expectedProvenance,
+                    Importance: expectedImportance,
+                    ExpiresAt: expectedExpiration),
                 cancellationToken);
 
             Assert.Equal(expectedConfidence, original.Confidence);
@@ -148,6 +153,9 @@ public sealed class PersistentMemoryTestEnvironmentTests
             Assert.Equal(
                 expectedProvenance.SourceId,
                 original.Provenance.SourceId);
+
+            Assert.Equal(expectedImportance, original.Importance);
+            Assert.Equal(expectedExpiration, original.ExpiresAt);
 
             var updated = await dispatcher.DispatchAsync<
                 UpdateMemoryCommand,
