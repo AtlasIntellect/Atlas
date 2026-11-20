@@ -255,7 +255,9 @@ public sealed class AtlasMemoryRecordMapperTests
                     ["speaker"] = "user",
                     ["method"] = "explicit-statement"
                 }
-            }
+            },
+            Importance = AtlasMemoryImportance.High,
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(7)
         };
 
         var record = AtlasMemoryRecordMapper.ToRecord(original);
@@ -281,6 +283,10 @@ public sealed class AtlasMemoryRecordMapperTests
         Assert.Equal(original.Provenance.Description, result.Provenance.Description);
 
         Assert.Equal(original.Provenance.Metadata.Count, result.Provenance.Metadata.Count);
+
+        Assert.Equal(original.Importance, result.Importance);
+
+        Assert.Equal(original.ExpiresAt, result.ExpiresAt);
 
         foreach (var (key, value) in original.Provenance.Metadata)
         {
@@ -372,5 +378,28 @@ public sealed class AtlasMemoryRecordMapperTests
         Assert.Equal(updatedAt, restored.UpdatedAt);
 
         Assert.Equal(AtlasMemoryLifecycleState.Archived, restored.LifecycleState);
+    }
+
+    /// <summary>
+    /// Verifies that a memory with default importance and no expiration survives a round-trip mapping.
+    /// </summary>
+    [Fact]
+    public void RoundTrip_Should_DefaultImportanceAndExpiration_When_Not_Specified()
+    {
+        // Arrange
+        var original = new AtlasMemoryEntry
+        {
+            Id = Guid.NewGuid(),
+            Content = "Permanent memory",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        // Act
+        var record = AtlasMemoryRecordMapper.ToRecord(original);
+        var result = AtlasMemoryRecordMapper.ToMemory(record);
+
+        // Assert
+        Assert.Equal(AtlasMemoryImportance.Normal, result.Importance);
+        Assert.Null(result.ExpiresAt);
     }
 }

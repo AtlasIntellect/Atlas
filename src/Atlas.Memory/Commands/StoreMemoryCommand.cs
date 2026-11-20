@@ -13,4 +13,6 @@ public sealed record StoreMemoryCommand(
     AtlasMemoryType Type,
     IAtlasMemoryData? Data = null,
     double? Confidence = null,
-    AtlasMemoryProvenance? Provenance = null) : AtlasCommand, IAtlasCommand;
+    AtlasMemoryProvenance? Provenance = null,
+    AtlasMemoryImportance Importance = AtlasMemoryImportance.Normal,
+    DateTimeOffset? ExpiresAt = null) : AtlasCommand, IAtlasCommand;
