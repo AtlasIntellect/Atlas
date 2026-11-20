@@ -47,7 +47,9 @@ public sealed class InMemoryAtlasMemoryStore : IAtlasMemoryStore
             Interpretation = memory.Interpretation ?? existingMemory.Interpretation,
             LifecycleState = memory.LifecycleState,
             Confidence = memory.Confidence ?? existingMemory.Confidence,
-            Provenance = memory.Provenance ?? existingMemory.Provenance
+            Provenance = memory.Provenance ?? existingMemory.Provenance,
+            Importance = memory.Importance,
+            ExpiresAt = memory.ExpiresAt
         };
 
         return Task.CompletedTask;
@@ -89,6 +91,14 @@ public sealed class InMemoryAtlasMemoryStore : IAtlasMemoryStore
 
         var memories = _memories.Values.AsEnumerable();
 
+        if (!query.IncludeExpired)
+        {
+            var now = DateTimeOffset.UtcNow;
+
+            memories = memories.Where(memory =>
+                memory.ExpiresAt is null || memory.ExpiresAt > now);
+        }
+
         if (!query.IncludeArchived)
         {
             memories = memories.Where(memory =>
@@ -97,16 +107,16 @@ public sealed class InMemoryAtlasMemoryStore : IAtlasMemoryStore
 
         if (query.Type is not null)
         {
-            memories = memories.Where(
-                memory => memory.Type == query.Type);
+            memories = memories.Where(memory =>
+                memory.Type == query.Type);
         }
 
         if (terms.Length == 0)
         {
             return Task.FromResult<IReadOnlyList<AtlasMemoryEntry>>(
             [
-                .. memories.OrderByDescending(
-                    memory => memory.CreatedAt)
+                .. memories.OrderByDescending(memory =>
+                    memory.CreatedAt)
             ]);
         }
 
@@ -163,7 +173,9 @@ public sealed class InMemoryAtlasMemoryStore : IAtlasMemoryStore
             Interpretation = existingMemory.Interpretation,
             LifecycleState = AtlasMemoryLifecycleState.Archived,
             Confidence = existingMemory.Confidence,
-            Provenance = existingMemory.Provenance
+            Provenance = existingMemory.Provenance,
+            Importance = existingMemory.Importance,
+            ExpiresAt = existingMemory.ExpiresAt
         };
 
         return Task.CompletedTask;

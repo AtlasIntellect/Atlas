@@ -41,7 +41,9 @@ public sealed class UpdateMemoryCommandHandler(IAtlasMemory memory)
                 },
             LifecycleState = existing.LifecycleState,
             Confidence = existing.Confidence,
-            Provenance = existing.Provenance
+            Provenance = existing.Provenance,
+            Importance = existing.Importance,
+            ExpiresAt = existing.ExpiresAt
         };
 
         await memory.UpdateAsync(updated, cancellationToken);

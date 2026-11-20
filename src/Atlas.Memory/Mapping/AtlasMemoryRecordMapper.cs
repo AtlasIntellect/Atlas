@@ -28,7 +28,9 @@ public static class AtlasMemoryRecordMapper
                 LifecycleState = memory.LifecycleState,
                 Confidence = memory.Confidence,
                 ProvenanceData = memory.Provenance is null
-                    ? null : JsonSerializer.Serialize(memory.Provenance)
+                    ? null : JsonSerializer.Serialize(memory.Provenance),
+                Importance = memory.Importance,
+                ExpiresAt = memory.ExpiresAt
             };
 
         if (memory.Interpretation is null)
@@ -82,7 +84,9 @@ public static class AtlasMemoryRecordMapper
             Confidence = record.Confidence,
             Provenance = record.ProvenanceData is null
                 ? null : JsonSerializer.Deserialize<AtlasMemoryProvenance>(
-                    record.ProvenanceData)
+                    record.ProvenanceData),
+            Importance = record.Importance,
+            ExpiresAt = record.ExpiresAt
         };
     }
 
