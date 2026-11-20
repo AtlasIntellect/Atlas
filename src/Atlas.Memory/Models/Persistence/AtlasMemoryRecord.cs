@@ -54,4 +54,15 @@ public sealed class AtlasMemoryRecord
     /// Gets the serialized provenance metadata, or null if none is present.
     /// </summary>
     public string? ProvenanceData { get; init; }
+
+    /// <summary>
+    /// Gets the importance assigned to this memory.
+    /// Defaults to <see cref="AtlasMemoryImportance.Normal"/>.
+    /// </summary>
+    public AtlasMemoryImportance Importance { get; init; } = AtlasMemoryImportance.Normal;
+
+    /// <summary>
+    /// Gets the optional expiration timestamp of this memory.
+    /// </summary>
+    public DateTimeOffset? ExpiresAt { get; init; }
 }
