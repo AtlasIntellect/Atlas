@@ -7,3 +7,5 @@ indent_style = space
 # Xml files
 [*.xml]
 indent_size = 2
+
+rulers = 80, 120

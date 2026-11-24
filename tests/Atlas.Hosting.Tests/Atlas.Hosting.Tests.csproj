@@ -22,13 +22,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageVersion Update="SonarAnalyzer.CSharp" Version="10.32.0.713" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Update="SonarAnalyzer.CSharp">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Update="SonarAnalyzer.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime;build;native;contentfiles;analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 
