@@ -1,12 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Atlas.Abstractions\Atlas.Abstractions.csproj" />
     <ProjectReference Include="..\Atlas.AI\Atlas.AI.csproj" />
     <ProjectReference Include="..\Atlas.Commands\Atlas.Commands.csproj" />
     <ProjectReference Include="..\Atlas.Memory\Atlas.Memory.csproj" />
     <ProjectReference Include="..\Atlas.Runtime\Atlas.Runtime.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="SonarAnalyzer.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime;build;native;contentfiles;analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>
